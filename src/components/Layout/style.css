@@ -1,0 +1,119 @@
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: transparent;
+  padding: 1.25rem;
+  gap: 1.25rem;
+  box-sizing: border-box;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1.25rem;
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-float);
+  padding: 1.5rem;
+  transition: all 0.4s ease;
+}
+
+/* Global Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.875rem 1.75rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease, fadeOut 0.4s ease 3.1s forwards;
+  white-space: nowrap;
+}
+
+.toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+.toast-error   { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.toast-info    { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Auth Loading Screen */
+.layout-loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-deep);
+  z-index: 10000;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(139, 92, 246, 0.1);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+    padding: 0.75rem;
+    gap: 1rem;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .layout-main {
+    gap: 1rem;
+    padding-bottom: 80px; /* Space for bottom nav if added later */
+  }
+
+  .layout-content {
+    padding: 1rem;
+    border-radius: 16px;
+    margin-bottom: 70px; /* Ensure content isn't hidden behind mobile nav */
+  }
+}

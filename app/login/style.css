@@ -1,0 +1,226 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 50%, #f8faff 0%, #f1f4f9 100%);
+  background-attachment: fixed;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2.5rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  margin: 1.25rem 1.25rem 0 1.25rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-float);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-radius: 30px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  animation: floatIn 1s ease-out;
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-5px);
+}
+
+.card-header-img {
+  width: 100%;
+  height: 160px;
+  background: linear-gradient(135deg, #4318FF 0%, #7B5CFF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+.card-header-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-body {
+  padding: 3rem 40px;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 850;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0 0 2.5rem 0;
+  font-weight: 500;
+}
+
+.login-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.provider-id-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 1.15rem;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  transition: all 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.provider-id-btn:hover {
+  border-color: var(--primary);
+  box-shadow: 0 10px 20px rgba(67, 24, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.provider-logo-img {
+  height: 28px;
+  object-fit: contain;
+}
+
+.page-footer {
+  text-align: center;
+  padding: 2.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+
+.external-browser-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed #cbd5e1;
+  padding: 0.85rem 1.15rem;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.external-browser-btn:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.ext-icon-wrap {
+  width: 36px;
+  height: 36px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ext-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ext-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ext-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.ext-chevron {
+  color: #94a3b8;
+}

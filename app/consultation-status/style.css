@@ -1,0 +1,422 @@
+/* src/pages/ConsultationStatus/style.css */
+
+.case-overview-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+/* Back Link & ID */
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.back-link {
+  color: #4318FF;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.case-number {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Header Card (Patient Info) */
+.case-patient-header {
+  background: white;
+  border-radius: 32px;
+  padding: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  margin-bottom: 2rem;
+  border: 1px solid #f1f5f9;
+}
+
+.patient-identity {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.patient-circle-jd {
+  width: 90px;
+  height: 90px;
+  background: #4318FF;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.patient-text-block h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.badge-immediate {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid #fecaca;
+}
+
+.badge-emergency {
+  background: #fce7f3;
+  color: #be185d;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid #fbcfe8;
+}
+
+.badge-urgent {
+  background: #fef9c3;
+  color: #a16207;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid #fef08a;
+}
+
+.badge-semi-urgent {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-non-urgent {
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid #e2e8f0;
+}
+
+.patient-meta-row {
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.patient-id-list {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* Header Actions */
+.header-action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-send-msg {
+  background: #4318FF;
+  color: white;
+  border: none;
+}
+
+.btn-outline-purple {
+  background: white;
+  color: #4318FF;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-outline-purple:hover {
+  border-color: #4318FF;
+  background: #f5f3ff;
+}
+
+.btn-close-case {
+  background: #1e293b;
+  color: white;
+  border: none;
+}
+
+/* Secondary Layout Grid */
+.case-details-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Sidebar: Medical History */
+.medical-history-sidebar {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+}
+
+.sidebar-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.sidebar-section-header span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+}
+
+.medical-data-group {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.medical-data-group label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #CBD5E0;
+  margin-bottom: 0.75rem;
+}
+
+.medical-data-group p {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4A5568;
+  line-height: 1.5;
+}
+
+.initial-diagnosis-box {
+  background: #fdf2ff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.initial-diagnosis-box label {
+  color: #A855F7;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.initial-diagnosis-box h4 {
+  color: #1e293b;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+}
+
+/* Main Area: Tabs & Content */
+.main-clinical-area {
+  background: white;
+  border-radius: 32px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+}
+
+.tabs-nav {
+  display: flex;
+  gap: 2.5rem;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #718096;
+  padding-bottom: 1rem;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  color: #4318FF;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4318FF;
+  border-radius: 3px;
+}
+
+.imaging-count {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-left: 0.4rem;
+}
+
+.tab-content-pane {
+  padding: 2.5rem;
+}
+
+/* Vitals Grid */
+.vitals-header {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #CBD5E0;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+
+.vitals-grid-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3.5rem;
+}
+
+.vital-card-mini {
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+}
+
+.vital-card-mini label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 0.75rem;
+}
+
+.vital-card-mini .vital-value {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.vital-card-mini .vital-unit {
+  font-size: 0.9375rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+/* Labs Table */
+.labs-section-header {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #CBD5E0;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+
+.modern-labs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-labs-table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #94a3b8;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modern-labs-table td {
+  padding: 1.25rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.col-test { color: #1e293b; }
+.col-result { color: #1e293b; font-weight: 800; }
+.col-ref { color: #94a3b8; }
+
+
+/* Footer */
+.status-footer {
+  margin-top: auto;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e2e8f0;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.footer-copyright {
+  color: #94a3b8;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-links a:hover {
+  color: #64748b;
+}
