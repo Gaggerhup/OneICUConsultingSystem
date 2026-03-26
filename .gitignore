@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.next/
+out/
+build/
 dist
 dist-ssr
 *.local
@@ -24,5 +27,14 @@ dist-ssr
 *.sw?
 
 .env
+.env.*.local
 .env.example copy
 telegramnoti.env.rtf
+server.log
+bot.log
+dev.log
+build.log
+prod.log
+
+# Agent
+.agent/

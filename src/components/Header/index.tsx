@@ -1,9 +1,10 @@
+'use client';
 import { useState, useRef, useEffect } from 'react';
 import {
   Search, Bell, Settings, Check, Activity, User, FileText, X,
   Archive, Layout, BellRing, Compass
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../../context/AppContext';
 import './style.css';
 
@@ -21,7 +22,8 @@ const NAV_PAGES = [
 ];
 
 const Header = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
+  const navigate = router.push;
   const [showNotifications, setShowNotifications] = useState(false);
   const {
     notifications,
@@ -259,7 +261,7 @@ const Header = () => {
             ) : (
               <div className="no-results">
                 <Search size={28} style={{ color: '#cbd5e1', marginBottom: '0.5rem' }} />
-                <p>No results for <strong>"{searchQuery}"</strong></p>
+                <p>No results for <strong>&quot;{searchQuery}&quot;</strong></p>
                 <p className="no-results-hint">Try searching by name, specialty, hospital, or page</p>
               </div>
             )}

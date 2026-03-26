@@ -1,4 +1,5 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+'use client';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -12,12 +13,13 @@ import { useApp } from '../../context/AppContext';
 import './style.css';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const navigate = router.push;
+  const pathname = usePathname();
   const { requests, userProfile } = useApp();
 
   // @ts-ignore
-  const tg = window.Telegram?.WebApp;
+  const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
   const currentUserId = tg?.initDataUnsafe?.user ? `user_${tg.initDataUnsafe.user.id}` : 'guest_user';
   
   const pendingCount = requests.filter(r => r.senderId !== currentUserId && r.status === 'Pending').length;
@@ -25,9 +27,9 @@ const Sidebar = () => {
   // Determine active path - parent pages highlighted for child routes
   const isActive = (path: string) => {
     if (path === '/active-cases') {
-      return location.pathname === '/active-cases' || location.pathname === '/patient-detail' || location.pathname === '/message-specialist';
+      return pathname === '/active-cases' || pathname === '/patient-detail' || pathname === '/message-specialist';
     }
-    return location.pathname === path;
+    return pathname === path;
   };
 
   const navItems = [

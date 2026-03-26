@@ -14,7 +14,7 @@ const TelegramAuth: React.FC = () => {
   useEffect(() => {
     // Check if the app is running inside a Telegram Webview
     // @ts-ignore - Telegram is injected globally by the script in index.html
-    const tg = window.Telegram?.WebApp;
+    const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
 
     if (tg) {
       // 1. Tell Telegram the app is ready to be displayed
