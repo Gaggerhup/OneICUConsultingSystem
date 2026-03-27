@@ -122,14 +122,25 @@ function Settings() {
 
   // Notification preferences initialized from context
   const [notifPrefs, setNotifPrefs] = useState(userProfile.notifPrefs);
+  const [acceptingNotifications, setAcceptingNotifications] = useState(userProfile.isAcceptingNotifications);
 
   // Sync notifPrefs if userProfile changes
   useEffect(() => {
     setNotifPrefs(userProfile.notifPrefs);
-  }, [userProfile.notifPrefs]);
+    setAcceptingNotifications(userProfile.isAcceptingNotifications);
+  }, [userProfile.notifPrefs, userProfile.isAcceptingNotifications]);
 
   const handleSaveNotifPrefs = () => {
-    updateUserProfile({ notifPrefs });
+    updateUserProfile({ 
+      notifPrefs,
+      isAcceptingNotifications: acceptingNotifications
+    });
+    // Also persist via authService for the combined profile
+    authService.saveUserProfile({ 
+      ...userProfile, 
+      notifPrefs,
+      isAcceptingNotifications: acceptingNotifications
+    });
     setShowSaveToast(true);
     setTimeout(() => setShowSaveToast(false), 3000);
   };
@@ -407,6 +418,21 @@ function Settings() {
                 <p>Control how and when you receive alerts about cases and system events.</p>
               </div>
               <div className="settings-card">
+                <div className="toggle-row" style={{ marginBottom: '1.5rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1.5rem' }}>
+                  <div>
+                    <p className="toggle-label">Accepting New Notifications</p>
+                    <p className="toggle-hint">Accepting New Notifications Status.</p>
+                  </div>
+                  <button
+                    className={`toggle-switch ${acceptingNotifications ? 'on' : ''}`}
+                    onClick={() => setAcceptingNotifications(!acceptingNotifications)}
+                    role="switch"
+                    aria-checked={acceptingNotifications}
+                  >
+                    <span className="toggle-knob" />
+                  </button>
+                </div>
+
                 <p className="notif-section-title">Case & Request Alerts</p>
                 {[
                   { key: 'newRequest', label: 'New consultation request received', hint: 'Alert when a new consultation request is submitted' },

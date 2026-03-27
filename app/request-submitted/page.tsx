@@ -1,16 +1,16 @@
 'use client';
-// src/pages/RequestSubmitted/index.tsx
 import { 
   Check, 
   LayoutDashboard,
-  ClipboardList,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import Layout from '@/components/Layout';
 import './style.css';
 
-function RequestSubmitted() {
+function RequestSubmittedContent() {
   const router = useRouter();
   const navigate = router.push;
   const searchParams = useSearchParams();
@@ -38,10 +38,7 @@ function RequestSubmitted() {
             <span className="ref-value">{referenceId}</span>
           </div>
 
-          <div className="success-actions">
-            <button className="btn-track" onClick={() => navigate('/consultation-status')}>
-              <ClipboardList size={20} /> Track Status
-            </button>
+          <div className="success-actions" style={{ justifyContent: 'center' }}>
             <button className="btn-dashboard" onClick={() => navigate('/dashboard')}>
               <LayoutDashboard size={20} /> Dashboard
             </button>
@@ -57,5 +54,19 @@ function RequestSubmitted() {
   );
 }
 
-export default RequestSubmitted;
-
+export default function RequestSubmitted() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="submitted-container">
+          <div className="loading-card">
+            <Loader2 className="spinner" size={48} color="#16a34a" />
+            <h1>Loading...</h1>
+          </div>
+        </div>
+      </Layout>
+    }>
+      <RequestSubmittedContent />
+    </Suspense>
+  );
+}

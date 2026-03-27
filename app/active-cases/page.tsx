@@ -69,7 +69,7 @@ function ActiveCases() {
 
   const handleRowClick = (id: string) => {
     selectCase(id);
-    navigate('/consultation-status');
+    navigate('/patient-detail');
   };
 
   const filteredCases = useMemo(() => {

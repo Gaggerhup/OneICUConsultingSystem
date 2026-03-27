@@ -590,3 +590,323 @@
 .footer-links a:hover {
   color: #0f172a;
 }
+
+/* ─── Step Indicator ──────────────────────────────────────────────────────── */
+.cid-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.875rem 1.5rem;
+  width: fit-content;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.step-item.done { color: #10b981; }
+.step-item.active { color: #4318FF; }
+
+.step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.step-item.done .step-circle { background: #d1fae5; color: #10b981; }
+.step-item.active .step-circle { background: #ede9fe; color: #4318FF; }
+
+.step-arrow { color: #cbd5e1; flex-shrink: 0; }
+.step-label { white-space: nowrap; }
+
+/* ─── CID Lookup Step ─────────────────────────────────────────────────────── */
+.cid-lookup-step {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 420px;
+  padding-top: 2rem;
+}
+
+.cid-lookup-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+.cid-lookup-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: #4318FF;
+}
+
+.cid-lookup-card h2 {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.cid-lookup-card > p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.cid-input-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.cid-input-wrap.has-error .cid-input-large {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.1);
+}
+
+.cid-search-icon {
+  position: absolute;
+  left: 1.125rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.cid-input-large {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 1.0625rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  background: #f8fafc;
+  color: #1e293b;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.cid-input-large:focus {
+  outline: none;
+  border-color: #4318FF;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(67,24,255,0.08);
+}
+
+.cid-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ef4444;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 1rem;
+  padding: 0.625rem 0.875rem;
+  background: #fff5f5;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.btn-cid-lookup {
+  width: 100%;
+  padding: 0.95rem;
+  background: linear-gradient(135deg, #4318FF 0%, #3311CC 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  transition: all 0.2s;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 15px rgba(67,24,255,0.25);
+}
+
+.btn-cid-lookup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(67,24,255,0.3);
+}
+
+.cid-hint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.cid-hint code {
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #475569;
+}
+
+/* ─── Loading State ───────────────────────────────────────────────────────── */
+.lookup-loading-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+.spin-icon {
+  color: #4318FF;
+  margin-bottom: 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.lookup-loading-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.lookup-loading-card p {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+.lookup-loading-card code {
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #475569;
+}
+
+.lookup-progress-bar {
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.lookup-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4318FF, #8b5cf6);
+  border-radius: 99px;
+  animation: progress 1.8s ease-out forwards;
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* ─── Review Banner ───────────────────────────────────────────────────────── */
+.review-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.review-banner.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.review-banner.warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.review-banner > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-banner strong {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.review-banner span {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.review-banner code {
+  background: rgba(0,0,0,0.06);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.btn-change-cid {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 0.4rem 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: inherit;
+  white-space: nowrap;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.btn-change-cid:hover { opacity: 1; }
+
+/* ─── Read-only field ─────────────────────────────────────────────────────── */
+.input-readonly {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  font-family: 'Courier New', monospace !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  cursor: default;
+}

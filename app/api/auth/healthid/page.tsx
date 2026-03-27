@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '@/services/auth';
 import { authenticateWithCode } from '@/actions/authActions';
 import { Loader2, AlertCircle } from 'lucide-react';
 import './style.css';
 
-function AuthCallback() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const navigate = router.push;
@@ -79,4 +79,18 @@ function AuthCallback() {
   );
 }
 
-export default AuthCallback;
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={
+      <div className="callback-container">
+        <div className="loading-card">
+          <Loader2 className="spinner" size={48} color="#16a34a" />
+          <h1>Initializing...</h1>
+          <p>Please wait while we secure your connection</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
+  );
+}

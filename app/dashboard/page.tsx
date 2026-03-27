@@ -17,7 +17,7 @@ import './style.css';
 function Dashboard() {
   const router = useRouter();
   const navigate = router.push;
-  const { activeCases, requests, specialists, activities, refreshActivities } = useApp();
+  const { activeCases, requests, specialists, activities, refreshActivities, selectCase } = useApp();
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -113,7 +113,7 @@ function Dashboard() {
                 </thead>
                 <tbody>
                   {activeCases.map((caseItem) => (
-                    <tr key={caseItem.id} onClick={() => navigate('/consultation-status')} style={{ cursor: 'pointer' }}>
+                    <tr key={caseItem.id} onClick={() => { selectCase(caseItem.id); navigate('/patient-detail'); }} style={{ cursor: 'pointer' }}>
                       <td>
                         <div className="patient-name">{caseItem.patientName}</div>
                         <div className="patient-meta">ID: {caseItem.id}</div>

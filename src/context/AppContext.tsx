@@ -11,6 +11,7 @@ export interface UserProfile {
   avatarUrl: string | null;
   phoneNumber: string;
   isAcceptingCases: boolean;
+  isAcceptingNotifications: boolean;
   license?: string;
   notifPrefs: {
     newRequest: boolean;
@@ -33,6 +34,7 @@ const DEFAULT_PROFILE: UserProfile = {
   avatarUrl: null,
   phoneNumber: '+66',
   isAcceptingCases: true,
+  isAcceptingNotifications: true,
   license: '',
   notifPrefs: {
     newRequest: true,
@@ -64,9 +66,11 @@ export interface Case {
   id: string;
   patientName: string;
   hospital: string;
-  status: 'Pending' | 'Approved' | 'Declined' | 'Active' | 'Critical' | 'Archived';
+  status: 'Pending' | 'Approved' | 'Declined' | 'Active' | 'Critical' | 'Archived' | 'Discharge' | 'Referred' | 'Dead';
   priority: 'IMMEDIATE' | 'EMERGENCY' | 'URGENT' | 'SEMI-URGENT' | 'NON-URGENT';
   date: string;
+  closeDate?: string;
+  closedTimestamp?: number;
   specialty?: string;
   age?: number;
   gender?: string;
@@ -125,7 +129,8 @@ interface AppContextType {
   activities: ActivityLogItem[];
   approveRequest: (id: string) => void;
   declineRequest: (id: string) => void;
-  closeCase: (id: string) => void;
+  closeCase: (id: string, outcome?: 'Discharge' | 'Referred' | 'Dead') => void;
+  reactivateCase: (id: string) => void;
   addRequest: (data: Omit<Case, 'id' | 'status' | 'date'>) => string;
   selectCase: (id: string) => void;
   clearSelectedCase: () => void;
@@ -152,7 +157,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         setRequests(data.filter(c => c.status === 'Pending' || c.status === 'Declined'));
         setActiveCases(data.filter(c => c.status === 'Active' || c.status === 'Critical'));
-        setArchiveCases(data.filter(c => c.status === 'Archived'));
+        setArchiveCases(data.filter(c => ['Archived', 'Discharge', 'Referred', 'Dead'].includes(c.status)));
         
         // Update next ID based on existing cases
         const maxId = data.reduce((max, c) => Math.max(max, parseInt(c.id) || 0), 107);
@@ -277,27 +282,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [specialists] = useState<SpecialistMember[]>([
     {
-      id: 's1', title: 'Dr.', firstName: 'Sarah', lastName: 'Jenkins', specialty: 'Cardiology', hospital: 'City General Hospital', email: 'sarah@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Sarah+Jenkins&background=14b8a6&color=fff', isAcceptingCases: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.9,      consultations: 124, nextAppt: 'Today, 2:30 PM', phoneNumber: '+66800000001',
+      id: 's1', title: 'Dr.', firstName: 'Sarah', lastName: 'Jenkins', specialty: 'Cardiology', hospital: 'City General Hospital', email: 'sarah@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Sarah+Jenkins&background=14b8a6&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.9,      consultations: 124, nextAppt: 'Today, 2:30 PM', phoneNumber: '+66800000001',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     },
     {
-      id: 's2', title: 'Dr.', firstName: 'Michael', lastName: 'Chen', specialty: 'Neurology', hospital: "St. Mary's Medical Center", email: 'michael@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Michael+Chen&background=0ea5e9&color=fff', isAcceptingCases: true, status: 'away', availability: 'IN SURGERY', role: 'Consultant', rating: 5.0, consultations: 89, nextAppt: 'Tomorrow, 9:00 AM', phoneNumber: '+66800000002',
+      id: 's2', title: 'Dr.', firstName: 'Michael', lastName: 'Chen', specialty: 'Neurology', hospital: "St. Mary's Medical Center", email: 'michael@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Michael+Chen&background=0ea5e9&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'away', availability: 'IN SURGERY', role: 'Consultant', rating: 5.0, consultations: 89, nextAppt: 'Tomorrow, 9:00 AM', phoneNumber: '+66800000002',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     },
     {
-      id: 's3', title: 'Dr.', firstName: 'Elena', lastName: 'Rodriguez', specialty: 'Oncology', hospital: 'University Health Institute', email: 'elena@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Elena+Rodriguez&background=8b5cf6&color=fff', isAcceptingCases: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.8, consultations: 210, nextAppt: 'Today, 4:00 PM', phoneNumber: '+66800000003',
+      id: 's3', title: 'Dr.', firstName: 'Elena', lastName: 'Rodriguez', specialty: 'Oncology', hospital: 'University Health Institute', email: 'elena@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Elena+Rodriguez&background=8b5cf6&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.8, consultations: 210, nextAppt: 'Today, 4:00 PM', phoneNumber: '+66800000003',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     },
     {
-      id: 's4', title: 'Dr.', firstName: 'David', lastName: 'Kim', specialty: 'Pediatrics', hospital: 'City General Hospital', email: 'david@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=David+Kim&background=f43f5e&color=fff', isAcceptingCases: true, status: 'dnd', availability: 'BUSY', role: 'Specialist', rating: 4.7, consultations: 156, nextAppt: 'Tomorrow, 8:30 AM', phoneNumber: '+66800000004',
+      id: 's4', title: 'Dr.', firstName: 'David', lastName: 'Kim', specialty: 'Pediatrics', hospital: 'City General Hospital', email: 'david@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=David+Kim&background=f43f5e&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'dnd', availability: 'BUSY', role: 'Specialist', rating: 4.7, consultations: 156, nextAppt: 'Tomorrow, 8:30 AM', phoneNumber: '+66800000004',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     },
     {
-      id: 's5', title: 'Dr.', firstName: 'Maya', lastName: 'Patel', specialty: 'Radiology', hospital: 'North Regional Clinic', email: 'maya@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Maya+Patel&background=10b981&color=fff', isAcceptingCases: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.9, consultations: 340, nextAppt: 'Today, 3:15 PM', phoneNumber: '+66800000005',
+      id: 's5', title: 'Dr.', firstName: 'Maya', lastName: 'Patel', specialty: 'Radiology', hospital: 'North Regional Clinic', email: 'maya@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Maya+Patel&background=10b981&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.9, consultations: 340, nextAppt: 'Today, 3:15 PM', phoneNumber: '+66800000005',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     },
     {
-      id: 's6', title: 'Dr.', firstName: 'Robert', lastName: 'Wilson', specialty: 'Cardiology', hospital: "St. Mary's Medical Center", email: 'robert@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Robert+Wilson&background=64748b&color=fff', isAcceptingCases: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.6, consultations: 95, nextAppt: 'Today, 5:00 PM', phoneNumber: '+66800000006',
+      id: 's6', title: 'Dr.', firstName: 'Robert', lastName: 'Wilson', specialty: 'Cardiology', hospital: "St. Mary's Medical Center", email: 'robert@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Robert+Wilson&background=64748b&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.6, consultations: 95, nextAppt: 'Today, 5:00 PM', phoneNumber: '+66800000006',
       notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
     }
   ]);
@@ -336,13 +341,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (request) showToast(`Request for ${request.patientName} declined`, 'error');
   };
 
-  const closeCase = (id: string) => {
+  const closeCase = (id: string, outcome: 'Discharge' | 'Referred' | 'Dead' = 'Discharge') => {
     const caseToClose = activeCases.find(c => c.id === id);
     if (caseToClose) {
+      const closedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const closedTs = Date.now();
+      
       setActiveCases(prev => prev.filter(c => c.id !== id));
-      setArchiveCases(prev => [...prev, { ...caseToClose, status: 'Archived' }]);
+      setArchiveCases(prev => [...prev, { 
+        ...caseToClose, 
+        status: outcome, 
+        closeDate: closedAt,
+        closedTimestamp: closedTs
+      }]);
       addNotification('Case Closed', `Case for ${caseToClose.patientName} has been archived.`, 'alert');
-      showToast(`✓ Case for ${caseToClose.patientName} moved to Archive`);
+      showToast(`✓ Case for ${caseToClose.patientName} moved to Archive as ${outcome}`);
+    }
+  };
+
+  const reactivateCase = (id: string) => {
+    const caseToReactivate = archiveCases.find(c => c.id === id);
+    if (caseToReactivate) {
+      setArchiveCases(prev => prev.filter(c => c.id !== id));
+      setActiveCases(prev => [...prev, { 
+        ...caseToReactivate, 
+        status: 'Active',
+        lastAction: 'Case Reactivated',
+        lastActiveTime: 'Just now'
+      }]);
+      showToast(`✓ Case for ${caseToReactivate.patientName} reactivated`);
     }
   };
 
@@ -433,7 +460,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           body: JSON.stringify({
             specialistId: `user_${telegramUser.id}`,
             chatId: telegramUser.id.toString(),
-            isAvailable: userProfile.isAcceptingCases,
+            isAvailable: userProfile.isAcceptingCases && userProfile.isAcceptingNotifications,
             preferences: Object.keys(userProfile.notifPrefs).filter(k => userProfile.notifPrefs[k as keyof typeof userProfile.notifPrefs])
           })
         }).catch(err => console.warn('[Telegram Registration Warning]', err));
@@ -453,12 +480,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         body: JSON.stringify({
           specialistId: `user_${telegramUser.id}`,
           chatId: telegramUser.id.toString(),
-          isAvailable: userProfile.isAcceptingCases,
+          isAvailable: userProfile.isAcceptingCases && userProfile.isAcceptingNotifications,
           preferences: Object.keys(userProfile.notifPrefs).filter(k => userProfile.notifPrefs[k as keyof typeof userProfile.notifPrefs])
         })
       }).catch(err => console.warn('[Telegram Sync Warning]', err));
     }
-  }, [userProfile.isAcceptingCases, userProfile.notifPrefs]);
+  }, [userProfile.isAcceptingCases, userProfile.isAcceptingNotifications, userProfile.notifPrefs]);
   // ------------------------------------
 
   return (
@@ -472,6 +499,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       approveRequest,
       declineRequest,
       closeCase,
+      reactivateCase,
       addRequest,
       selectCase,
       clearSelectedCase,

@@ -5,14 +5,70 @@ import {
   Filter,
   ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RefreshCcw,
+  Search,
+  Calendar
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { useApp } from '@/context/AppContext';
+import { useApp, type Case } from '@/context/AppContext';
 import './style.css';
 
+const HOSPITALS = [
+  'All Hospitals',
+  'โรงพยาบาลพุทธชินราช พิษณุโลก',
+  'โรงพยาบาลวังทอง',
+  'โรงพยาบาลวัดโบสถ์',
+  'โรงพยาบาลพรหมพิราม',
+  'โรงพยาบาลบางระกำ',
+  'โรงพยาบาลบางกระทุ่ม',
+  'โรงพยาบาลเนินมะปราง',
+  'โรงพยาบาลสมเด็จพระยุพราชนครไทย',
+  'โรงพยาบาลชาติตระการ'
+];
+
+const DATE_RANGES = [
+  { label: 'All Time', days: Infinity },
+  { label: 'Last 7 Days', days: 7 },
+  { label: 'Last 30 Days', days: 30 },
+  { label: 'Last 90 Days', days: 90 },
+  { label: 'Last 12 Months', days: 365 },
+];
+
+const OUTCOMES = ['All Outcomes', 'Discharge', 'Referred', 'Dead'];
+
 function ArchiveCases() {
-  const { archiveCases } = useApp();
+  const { archiveCases, reactivateCase } = useApp();
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
+  const [outcomeFilter, setOutcomeFilter] = useState('All Outcomes');
+  const [dateRange, setDateRange] = useState(DATE_RANGES[2]); // Default 30 Days
+
+  const filteredCases = useMemo(() => {
+    return archiveCases.filter(c => {
+      // 1. Search Filter
+      const matchesSearch = searchQuery === '' || 
+        c.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.id.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // 2. Hospital Filter
+      const matchesHospital = hospitalFilter === 'All Hospitals' || c.hospital === hospitalFilter;
+      
+      // 3. Outcome Filter
+      const matchesOutcome = outcomeFilter === 'All Outcomes' || c.status === outcomeFilter;
+      
+      // 4. Date Range Filter
+      let matchesDate = true;
+      if (dateRange.days !== Infinity && c.closedTimestamp) {
+        const diffDays = (Date.now() - c.closedTimestamp) / (1000 * 60 * 60 * 24);
+        matchesDate = diffDays <= dateRange.days;
+      }
+
+      return matchesSearch && matchesHospital && matchesOutcome && matchesDate;
+    });
+  }, [archiveCases, searchQuery, hospitalFilter, outcomeFilter, dateRange]);
 
   return (
     <Layout>
@@ -22,9 +78,14 @@ function ArchiveCases() {
                <h1>Archive Cases</h1>
                <p className="page-subtitle">Review and manage historical interhospital consultation records.</p>
             </div>
-            <div className="export-actions">
-               <button className="btn-export-csv"><Download size={16} /> Export CSV</button>
-               <button className="btn-export-summary"><FileSpreadsheet size={16} /> Export Summary Report</button>
+            <div className="search-bar-wrap-archive">
+               <Search size={18} className="search-icon" />
+               <input 
+                 type="text" 
+                 placeholder="Search by ID or Name..." 
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+               />
             </div>
           </div>
 
@@ -33,45 +94,52 @@ function ArchiveCases() {
                 <span className="filter-label"><Filter size={14}/> FILTERS</span>
                 
                 <div className="filter-select-wrapper">
-                   <select className="filter-select">
-                      <option>All Specialties</option>
-                      <option>Cardiology</option>
-                      <option>Neurology</option>
-                      <option>Oncology</option>
+                   <select 
+                     className="filter-select"
+                     value={hospitalFilter}
+                     onChange={(e) => setHospitalFilter(e.target.value)}
+                   >
+                      {HOSPITALS.map(h => <option key={h}>{h}</option>)}
                    </select>
                    <ChevronDown size={14} className="select-icon" />
                 </div>
                 
                 <div className="filter-select-wrapper">
-                   <select className="filter-select">
-                      <option>All Hospitals</option>
-                      <option>City General</option>
-                      <option>St. Jude Medical</option>
+                   <select 
+                     className="filter-select"
+                     value={outcomeFilter}
+                     onChange={(e) => setOutcomeFilter(e.target.value)}
+                   >
+                      {OUTCOMES.map(o => <option key={o}>{o}</option>)}
                    </select>
                    <ChevronDown size={14} className="select-icon" />
                 </div>
                 
                 <div className="filter-select-wrapper date-select">
-                   <span className="mr-2 text-gray">📅</span>
-                   <select className="filter-select auto-width">
-                      <option>Last 12 Months</option>
-                      <option>Last 6 Months</option>
-                      <option>Last 30 Days</option>
+                   <Calendar size={14} className="mr-2 text-gray" />
+                   <select 
+                     className="filter-select auto-width"
+                     value={dateRange.label}
+                     onChange={(e) => {
+                       const range = DATE_RANGES.find(r => r.label === e.target.value);
+                       if (range) setDateRange(range);
+                     }}
+                   >
+                      {DATE_RANGES.map(r => <option key={r.label}>{r.label}</option>)}
                    </select>
                 </div>
-             </div>
-             
-             <div className="filter-row no-border">
-                <div className="filter-select-wrapper">
-                   <select className="filter-select">
-                      <option>All Outcomes</option>
-                      <option>Completed</option>
-                      <option>Discharged</option>
-                   </select>
-                   <ChevronDown size={14} className="select-icon" />
-                </div>
-                
-                <button className="clear-filters-btn">Clear All</button>
+
+                <button 
+                  className="clear-filters-btn"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setHospitalFilter('All Hospitals');
+                    setOutcomeFilter('All Outcomes');
+                    setDateRange(DATE_RANGES[0]);
+                  }}
+                >
+                  Clear All
+                </button>
              </div>
           </div>
 
@@ -82,128 +150,60 @@ function ArchiveCases() {
                   <th>CASE ID</th>
                   <th>PATIENT NAME</th>
                   <th>HOSPITAL</th>
-                  <th>SPECIALIST</th>
-                  <th>DATE</th>
-                  <th>STATUS</th>
+                  <th>CLOSE DATE</th>
+                  <th>STATUS / OUTCOME</th>
                   <th>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
-                {/* Row 1 */}
-                <tr>
-                  <td className="case-id text-gray font-medium">#9842</td>
-                  <td>
-                     <div className="patient-stack">
-                        <span className="font-bold text-dark">John Doe</span>
-                        <span className="demographics-sub">45M • O+ Positive</span>
-                     </div>
-                  </td>
-                  <td className="text-gray">City General</td>
-                  <td className="text-gray">Dr. Smith</td>
-                  <td className="text-gray">Oct 12, 2023</td>
-                  <td><span className="status-pill status-completed">Completed</span></td>
-                  <td>
-                    <button className="action-link-btn">
-                       <strong>View Record</strong> <Download size={14} className="ml-1" />
-                    </button>
-                  </td>
-                </tr>
-
-                {/* Row 2 */}
-                <tr>
-                  <td className="case-id text-gray font-medium">#9831</td>
-                  <td>
-                     <div className="patient-stack">
-                        <span className="font-bold text-dark">Jane Smith</span>
-                        <span className="demographics-sub">32F • B- Negative</span>
-                     </div>
-                  </td>
-                  <td className="text-gray">St. Jude Medical</td>
-                  <td className="text-gray">Dr. Adams</td>
-                  <td className="text-gray">Oct 10, 2023</td>
-                  <td><span className="status-pill status-discharged">Discharged</span></td>
-                  <td>
-                    <button className="action-link-btn">
-                       <strong>View Record</strong> <Download size={14} className="ml-1" />
-                    </button>
-                  </td>
-                </tr>
-
-                {/* Row 3 */}
-                <tr>
-                  <td className="case-id text-gray font-medium">#9755</td>
-                  <td>
-                     <div className="patient-stack">
-                        <span className="font-bold text-dark">Robert Brown</span>
-                        <span className="demographics-sub">60M • A+ Positive</span>
-                     </div>
-                  </td>
-                  <td className="text-gray">County Medical</td>
-                  <td className="text-gray">Dr. Lee</td>
-                  <td className="text-gray">Sep 28, 2023</td>
-                  <td><span className="status-pill status-transferred">Transferred</span></td>
-                  <td>
-                    <button className="action-link-btn">
-                       <strong>View Record</strong> <Download size={14} className="ml-1" />
-                    </button>
-                  </td>
-                </tr>
-
-                {/* Row 4 */}
-                <tr>
-                  <td className="case-id text-gray font-medium">#9642</td>
-                  <td>
-                     <div className="patient-stack">
-                        <span className="font-bold text-dark">Emily Davis</span>
-                        <span className="demographics-sub">28F • AB- Negative</span>
-                     </div>
-                  </td>
-                  <td className="text-gray">Memorial Hospital</td>
-                  <td className="text-gray">Dr. White</td>
-                  <td className="text-gray">Sep 15, 2023</td>
-                  <td><span className="status-pill status-completed">Completed</span></td>
-                  <td>
-                    <button className="action-link-btn">
-                       <strong>View Record</strong> <Download size={14} className="ml-1" />
-                    </button>
-                  </td>
-                </tr>
-                
-                {/* Row 5 */}
-                <tr>
-                  <td className="case-id text-gray font-medium">#9521</td>
-                  <td>
-                     <div className="patient-stack">
-                        <span className="font-bold text-dark">Michael Wilson</span>
-                        <span className="demographics-sub">52M • O+ Positive</span>
-                     </div>
-                  </td>
-                  <td className="text-gray">St. Jude Medical</td>
-                  <td className="text-gray">Dr. Taylor</td>
-                  <td className="text-gray">Sep 01, 2023</td>
-                  <td><span className="status-pill status-referred">Referred</span></td>
-                  <td>
-                    <button className="action-link-btn">
-                       <strong>View Record</strong> <Download size={14} className="ml-1" />
-                    </button>
-                  </td>
-                </tr>
-
+                {filteredCases.map((c) => (
+                  <tr key={c.id}>
+                    <td className="case-id text-gray font-medium">#{c.id}</td>
+                    <td>
+                       <div className="patient-stack">
+                          <span className="font-bold text-dark">{c.patientName}</span>
+                          <span className="demographics-sub">{c.age}{c.gender?.charAt(0)} • {c.priority}</span>
+                       </div>
+                    </td>
+                    <td className="text-gray">{c.hospital}</td>
+                    <td className="text-gray">{c.closeDate || c.date}</td>
+                    <td>
+                      <span className={`status-pill status-${c.status.toLowerCase()}`}>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="archive-actions">
+                        <button className="action-link-btn" title="View Record">
+                           <Download size={16} />
+                        </button>
+                        <button 
+                          className="reactivate-btn" 
+                          onClick={() => reactivateCase(c.id)}
+                          title="Reactivate Case"
+                        >
+                           <RefreshCcw size={16} /> Reactivate
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredCases.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
+                      <div className="empty-state">
+                        <Filter size={40} strokeWidth={1.5} />
+                        <p>No archived records found matching those filters.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="pagination-bar">
-            <span className="pagination-text">Showing <strong>1</strong> to <strong>5</strong> of <strong>1,248</strong> records</span>
-            <div className="pagination-controls">
-              <button className="page-nav-btn"><ChevronLeft size={16} /></button>
-              <button className="page-num-btn active">1</button>
-              <button className="page-num-btn">2</button>
-              <button className="page-num-btn">3</button>
-              <span className="page-dots">...</span>
-              <button className="page-num-btn">125</button>
-              <button className="page-nav-btn"><ChevronRight size={16} /></button>
-            </div>
+            <span className="pagination-text">Showing <strong>{filteredCases.length}</strong> of <strong>{archiveCases.length}</strong> records</span>
           </div>
       </div>
     </Layout>

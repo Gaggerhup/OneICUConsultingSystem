@@ -3,32 +3,85 @@ import {
   Search,
   Filter,
   AlertCircle,
-  Clock,
-  Star,
+  ChevronDown,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { useApp, type SpecialistMember } from '@/context/AppContext';
 import './style.css';
 
+const ALL_SPECIALTIES = [
+  "Anatomical Pathology", "Anesthesiology", "Cardiology", "Child and Adolescent Psychiatry",
+  "Clinical Pathology", "Colon and Rectal Surgery", "Diagnostic Radiology", "Emergency Medicine",
+  "Endocrinology and Metabolism", "Family Medicine", "Forensic Medicine", "Gastroenterology",
+  "General Practitioner (GP)", "Geriatric Medicine", "Hematology", "Infectious Diseases",
+  "Internal Medicine", "Medical Oncology", "Neonatal and Perinatal Medicine", "Nephrology",
+  "Neurology", "Neurosurgery", "Nuclear Medicine", "Obstetrics and Gynecology",
+  "Ophthalmology", "Orthopedic Surgery", "Otolaryngology", "Pathology",
+  "Pediatric Cardiology", "Pediatric Endocrinology", "Pediatric Hematology and Oncology",
+  "Pediatric Infectious Diseases", "Pediatric Nephrology", "Pediatric Neurology",
+  "Pediatric Pulmonology", "Pediatric Surgery", "Pediatrics", "Plastic Surgery",
+  "Preventive Medicine", "Psychiatry", "Pulmonary Medicine and Critical Care",
+  "Radiation Oncology", "Radiology", "Rehabilitation Medicine", "Rheumatology",
+  "Surgery", "Thoracic Surgery", "Urology", "Vascular Surgery"
+];
+
 function Specialist() {
   const { specialists, userProfile } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties');
 
   // Create a combined list including the user if they are accepting cases
-  const allSpecialists: (SpecialistMember | any)[] = [...specialists];
-  
-  if (userProfile.isAcceptingCases) {
-    allSpecialists.unshift({
-      id: 'current-user',
-      ...userProfile,
-      status: 'online',
-      availability: 'AVAILABLE',
-      rating: 5.0,
-      consultations: 0,
-      nextAppt: 'Now'
+  const allSpecialists = useMemo(() => {
+    const list: (SpecialistMember | any)[] = [...specialists];
+    
+    // Add current user to the list for demonstration if they have a specialty
+    if (userProfile.firstName) {
+      list.unshift({
+        id: 'current-user',
+        ...userProfile,
+        status: userProfile.isAcceptingCases ? 'online' : 'away',
+        availability: userProfile.isAcceptingCases ? 'AVAILABLE' : 'UNAVAILABLE',
+        rating: 5.0,
+        consultations: 0,
+        nextAppt: 'Now'
+      });
+    }
+    return list;
+  }, [specialists, userProfile]);
+
+  // Filter 1: Determine which specialties have at least one person "Accepting New Cases"
+  const activeSpecialties = useMemo(() => {
+    const specialtiesWithActiveMembers = new Set<string>();
+    allSpecialists.forEach(s => {
+      if (s.isAcceptingCases) {
+        specialtiesWithActiveMembers.add(s.specialty);
+      }
     });
-  }
+    
+    return ALL_SPECIALTIES.filter(spec => specialtiesWithActiveMembers.has(spec));
+  }, [allSpecialists]);
+
+  // Filter 2: Apply filters to the specialist list
+  const filteredSpecialists = useMemo(() => {
+    return allSpecialists.filter(s => {
+      // Logic requirement: only show specialists who are accepting cases in the directory?
+      // Or show all but status differs? Rule 5 says status available depends on accepting cases.
+      // Rule 1 says specialty display in dropdown depends on existence of accepting specialist.
+      // I will show ALL specialists in that specialty, but their badge reflects reality.
+      
+      const matchesSearch = 
+        (s.firstName + ' ' + s.lastName).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.hospital.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesSpecialty = selectedSpecialty === 'All Specialties' || s.specialty === selectedSpecialty;
+      
+      return matchesSearch && matchesSpecialty;
+    });
+  }, [allSpecialists, searchQuery, selectedSpecialty]);
 
   return (
     <Layout>
@@ -41,61 +94,50 @@ function Specialist() {
           <div className="specialist-controls">
             <div className="search-box-large">
                <Search size={18} className="text-gray" />
-               <input type="text" placeholder="Search by name, specialty, or hospital" />
+               <input 
+                 type="text" 
+                 placeholder="Search by name, specialty, or hospital" 
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+               />
             </div>
             <div className="control-actions">
-               <button className="filter-outline-btn">
-                  <Filter size={16} /> Filters
-               </button>
-               <button className="urgent-request-btn">
-                  <AlertCircle size={16} fill="white" className="text-purple stroke-white" />
-                  Urgent Request
-               </button>
+               <div className="specialty-dropdown-wrap">
+                 <Filter size={16} className="filter-icon" />
+                 <select 
+                   className="specialty-select"
+                   value={selectedSpecialty}
+                   onChange={(e) => setSelectedSpecialty(e.target.value)}
+                 >
+                   <option>All Specialties</option>
+                   {activeSpecialties.map(spec => (
+                     <option key={spec} value={spec}>{spec}</option>
+                   ))}
+                 </select>
+                 <ChevronDown size={14} className="dropdown-chevron" />
+               </div>
             </div>
           </div>
 
-          <div className="specialty-pills">
-            <button className="s-pill active">All Specialties</button>
-            <button className="s-pill">
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-               Cardiology
-            </button>
-            <button className="s-pill">
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-               Neurology
-            </button>
-            <button className="s-pill">
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-               Oncology
-            </button>
-            <button className="s-pill">
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-               Pediatrics
-            </button>
-            <button className="s-pill">
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-               Radiology
-            </button>
-          </div>
 
           <div className="specialist-grid">
-            {allSpecialists.map((s) => (
+            {filteredSpecialists.map((s) => (
               <div key={s.id} className="specialist-card">
                 <div className="sc-header">
                     <div className="sc-profile-badge">
                         {s.avatarUrl ? (
                           <img src={s.avatarUrl} alt={`${s.title} ${s.firstName} ${s.lastName}`} />
                         ) : (
-                          <div className="sc-initials">{s.firstName.charAt(0)}{s.lastName.charAt(0)}</div>
+                          <div className="sc-initials">{s.firstName?.charAt(0)}{s.lastName?.charAt(0)}</div>
                         )}
-                        <div className={`status-indicator ${s.status}`}></div>
+                        <div className={`status-indicator ${s.isAcceptingCases ? 'online' : 'away'}`}></div>
                     </div>
                     <div className="sc-info">
                         <h3>{s.title} {s.firstName} {s.lastName}</h3>
                         <span className="sc-specialty">{s.specialty}</span>
                     </div>
-                    <div className={`availability-badge ${s.availability.toLowerCase().replace(' ', '-')}`}>
-                      {s.availability}
+                    <div className={`availability-badge ${s.isAcceptingCases ? 'available' : 'unavailable'}`}>
+                      {s.isAcceptingCases ? 'AVAILABLE' : 'UNAVAILABLE'}
                     </div>
                 </div>
                 
@@ -103,19 +145,6 @@ function Specialist() {
                     <div className="sc-row text-gray">
                         <span className="mr-2">🏥</span> {s.hospital}
                     </div>
-                    <div className="sc-row text-gray">
-                        <Clock size={14} className="mr-2" /> Next appt: {s.nextAppt}
-                    </div>
-                    <div className="sc-row sc-rating">
-                        <Star size={14} className="fill-yellow text-yellow mr-2" /> 
-                        <span className="font-bold text-dark mr-1">{s.rating.toFixed(1)}</span>
-                        <span className="text-gray">({s.consultations} consultations)</span>
-                    </div>
-                </div>
-
-                <div className="sc-actions">
-                    <button className="btn-primary-full">New Request</button>
-                    <button className="btn-secondary-full">View Profile</button>
                 </div>
               </div>
             ))}

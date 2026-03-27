@@ -429,19 +429,83 @@
   color: #16a34a;
 }
 
-.status-discharged {
-  background-color: #e0f2fe;
-  color: #0284c7;
+.status-pill.status-discharged,
+.status-pill.status-discharge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
-.status-transferred {
-  background-color: #fef3c7;
-  color: #d97706;
+.status-pill.status-referred {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
 }
 
-.status-referred {
-  background-color: #f3e8ff;
-  color: #9333ea;
+.status-pill.status-dead {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+}
+
+.status-pill.status-transferred {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.archive-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.reactivate-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reactivate-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.search-bar-wrap-archive {
+  position: relative;
+  width: 300px;
+}
+
+.search-bar-wrap-archive .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.search-bar-wrap-archive input {
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  width: 100%;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.search-bar-wrap-archive input:focus {
+  background: #fff;
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
 }
 
 .action-link-btn {
