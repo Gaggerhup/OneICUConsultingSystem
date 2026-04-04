@@ -2,13 +2,12 @@ version: '3.8'
 
 services:
   db:
-    image: mariadb:10
-    container_name: antigravity-db
+    image: mariadb:latest
+    container_name: mariadb-hosxp
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: rootpassword
-      MARIADB_USER: antigravity_user
-      MARIADB_PASSWORD: securepassword
+      MARIADB_ROOT_PASSWORD: 1234
+      MARIADB_DATABASE: icuconsult
       TZ: Asia/Bangkok
     ports:
       - "3306:3306"

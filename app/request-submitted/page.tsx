@@ -1,6 +1,6 @@
 'use client';
-import { 
-  Check, 
+import {
+  Check,
   LayoutDashboard,
   ShieldCheck,
   Loader2
@@ -8,44 +8,43 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import Layout from '@/components/Layout';
-import './style.css';
+import styles from './style.module.css';
 
 function RequestSubmittedContent() {
   const router = useRouter();
   const navigate = router.push;
   const searchParams = useSearchParams();
-  
-  // Get the Case ID passed via query param from NewRequest page
+
   const caseId = searchParams.get('caseId') || 'Pending';
-  const referenceId = `REQ-${caseId.padStart(6, '0')}`;
+  const referenceId = `REQ-${caseId}`;
 
   return (
     <Layout>
-      <div className="submitted-container">
-        <div className="success-card">
-          <div className="success-icon-wrapper">
+      <div className={styles['submitted-container']}>
+        <div className={styles['success-card']}>
+          <div className={styles['success-icon-wrapper']}>
             <Check size={48} strokeWidth={3} />
           </div>
 
           <h1>Consultation Submitted!</h1>
-          
+
           <p>
             คำขอรับการปรึกษาของคุณถูกส่งเข้าระบบเรียบร้อยแล้ว โดยข้อมูลทั้งหมดจะถูกจัดเก็บและส่งต่อภายใต้มารตฐานความปลอดภัยระดับสูงสุด (HIPAA Compliant)
           </p>
 
-          <div className="ref-box">
-            <span className="ref-label">Reference ID</span>
-            <span className="ref-value">{referenceId}</span>
+          <div className={styles['ref-box']}>
+            <span className={styles['ref-label']}>Reference ID</span>
+            <span className={styles['ref-value']}>{referenceId}</span>
           </div>
 
-          <div className="success-actions" style={{ justifyContent: 'center' }}>
-            <button className="btn-dashboard" onClick={() => navigate('/dashboard')}>
+          <div className={`${styles['success-actions']} ${styles['centered-actions']}`}>
+            <button className={styles['btn-dashboard']} onClick={() => navigate('/dashboard')}>
               <LayoutDashboard size={20} /> Dashboard
             </button>
           </div>
         </div>
 
-        <div className="secure-footer">
+        <div className={styles['secure-footer']}>
           <ShieldCheck size={16} />
           <span>Encrypted Submission • Real-time Routing Active</span>
         </div>
@@ -58,9 +57,9 @@ export default function RequestSubmitted() {
   return (
     <Suspense fallback={
       <Layout>
-        <div className="submitted-container">
-          <div className="loading-card">
-            <Loader2 className="spinner" size={48} color="#16a34a" />
+        <div className={styles['submitted-container']}>
+          <div className={styles['loading-card']}>
+            <Loader2 className={styles['spinner']} size={48} color="#16a34a" />
             <h1>Loading...</h1>
           </div>
         </div>

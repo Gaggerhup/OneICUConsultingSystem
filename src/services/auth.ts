@@ -14,6 +14,24 @@ const HEALTH_CLIENT_SECRET = process.env.NEXT_PUBLIC_HEALTH_CLIENT_SECRET || '';
 const PROVIDER_CLIENT_ID = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_ID || '';
 const PROVIDER_CLIENT_SECRET = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_SECRET || '';
 
+const normalizeHospitalName = (value: string | null | undefined) => {
+  switch ((value || '').trim()) {
+    case 'Phitsanulok General Hospital':
+    case 'Pitsanulok Hospital':
+      return 'โรงพยาบาลพุทธชินราช พิษณุโลก';
+    case 'Mueang Phitsanulok Hospital':
+      return 'โรงพยาบาลเมืองพิษณุโลก';
+    case 'Bang Krathum Hospital':
+      return 'โรงพยาบาลบางกระทุ่ม';
+    case 'Phrom Phiram Hospital':
+      return 'โรงพยาบาลพรหมพิราม';
+    case 'Wang Thong Hospital':
+      return 'โรงพยาบาลวังทอง';
+    default:
+      return value || '';
+  }
+};
+
 export const authService = {
   /**
    * Redirect users to the moph.id.th OAuth portal
@@ -117,7 +135,7 @@ export const authService = {
     const specialty = '';
 
     // Rule 5: Primary Hospital from first organization entry
-    const hospital = firstOrg?.hname_th || firstOrg?.hname_eng || '';
+    const hospital = normalizeHospitalName(firstOrg?.hname_th || firstOrg?.hname_eng || '');
 
     // Email from root level; phone not provided by Provider ID API
     const email = profile.email || '';
@@ -213,7 +231,11 @@ export const authService = {
    * Call this when the user saves changes in Settings > Profile.
    */
   saveUserProfile: (profile: any) => {
-    localStorage.setItem('user_profile', JSON.stringify(profile));
+    const normalized = {
+      ...profile,
+      hospital: normalizeHospitalName(profile?.hospital),
+    };
+    localStorage.setItem('user_profile', JSON.stringify(normalized));
   },
 
   /**
@@ -226,6 +248,33 @@ export const authService = {
   },
 
   /**
+   * Setup a mock session for development/testing bypass.
+   */
+  setupMockSession: () => {
+    const mockProfile = {
+      account_id: 'dev_mock_user',
+      firstname_th: 'Dev',
+      lastname_th: 'Mode',
+      email: 'dev@example.com',
+      organization: [{
+        hname_th: 'โรงพยาบาลพุทธชินราช พิษณุโลก',
+        license_id: 'DEV-12345'
+      }]
+    };
+    localStorage.setItem('provider_session', JSON.stringify(mockProfile));
+    
+    // Set a cookie for Next.js Middleware
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 1); // 1 day
+    document.cookie = `auth_session=true; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`;
+    
+    // Initialize profile
+    authService.initializeProfile(mockProfile);
+    
+    window.location.href = '/dashboard';
+  },
+
+  /**
    * Clear session on logout
    */
   logout: () => {
@@ -235,4 +284,3 @@ export const authService = {
     window.location.href = '/login';
   }
 };
-

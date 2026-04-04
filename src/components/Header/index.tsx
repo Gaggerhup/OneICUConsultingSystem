@@ -14,7 +14,7 @@ const NAV_PAGES = [
   { id: 'p2', label: 'Active Cases',           description: 'Manage ongoing patient cases',        path: '/active-cases',           icon: 'activity' },
   { id: 'p3', label: 'Pending Requests',       description: 'Review and approve new requests',    path: '/requests',              icon: 'file' },
   { id: 'p4', label: 'Archived Cases',         description: 'Browse closed and archived cases',   path: '/archive-cases',         icon: 'archive' },
-  { id: 'p5', label: 'Specialist Directory',   description: 'Find and contact specialists',        path: '/specialists',           icon: 'user' },
+  { id: 'p5', label: 'Specialist Directory',   description: 'Find and contact specialists',        path: '/specialist',            icon: 'user' },
   { id: 'p6', label: 'New Consultation',       description: 'Submit a new consultation request',  path: '/new-request',           icon: 'file' },
   { id: 'p7', label: 'Settings – Profile',     description: 'Manage your profile and account',    path: '/settings',              icon: 'settings' },
   { id: 'p8', label: 'Settings – Security',    description: 'Manage security and active sessions',path: '/settings',              icon: 'settings' },
@@ -70,9 +70,11 @@ const Header = () => {
     ).slice(0, LIMIT),
 
     specialists: specialists.filter(s =>
-      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) ||
-      s.specialty.toLowerCase().includes(q) ||
-      s.hospital.toLowerCase().includes(q)
+      s.isAcceptingCases && (
+        `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) ||
+        (s.specialty || '').toLowerCase().includes(q) ||
+        (s.hospital || '').toLowerCase().includes(q)
+      )
     ).slice(0, LIMIT),
 
     notifications: notifications.filter(n =>
@@ -125,7 +127,7 @@ const Header = () => {
 
   const goCase = (id: string) => {
     selectCase(id);
-    go('/consultation-status');
+    go('/patient-detail');
   };
 
   const PageIcon = ({ icon }: { icon: string }) => {
@@ -180,7 +182,7 @@ const Header = () => {
                   <div className="search-section">
                     <h4>Requests</h4>
                     {results.requests.map(r => (
-                      <div key={r.id} className="search-result-item" onClick={() => go('/requests')}>
+                      <div key={r.id} className="search-result-item" onClick={() => goCase(r.id)}>
                         <div className="result-icon request"><FileText size={16} /></div>
                         <div className="result-text">
                           <span className="result-title">{r.patientName}</span>
@@ -196,7 +198,7 @@ const Header = () => {
                   <div className="search-section">
                     <h4>Archived Cases</h4>
                     {results.archives.map(a => (
-                      <div key={a.id} className="search-result-item" onClick={() => go('/archive-cases')}>
+                      <div key={a.id} className="search-result-item" onClick={() => goCase(a.id)}>
                         <div className="result-icon archive"><Archive size={16} /></div>
                         <div className="result-text">
                           <span className="result-title">{a.patientName}</span>
@@ -212,14 +214,14 @@ const Header = () => {
                   <div className="search-section">
                     <h4>Specialists</h4>
                     {results.specialists.map(s => (
-                      <div key={s.id} className="search-result-item" onClick={() => go('/specialists')}>
+                      <div key={s.id} className="search-result-item" onClick={() => go('/specialist')}>
                         <div className="result-icon specialist"><User size={16} /></div>
                         <div className="result-text">
                           <span className="result-title">{s.title} {s.firstName} {s.lastName}</span>
                           <span className="result-meta">{s.specialty} · {s.hospital}</span>
                         </div>
-                        <span className={`result-tag specialist-status ${s.availability === 'AVAILABLE' ? 'available' : 'busy'}`}>
-                          {s.availability}
+                        <span className={`result-tag specialist-status ${s.isAcceptingCases ? 'available' : 'busy'}`}>
+                          {s.isAcceptingCases ? 'AVAILABLE' : 'UNAVAILABLE'}
                         </span>
                       </div>
                     ))}

@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { authService } from '../../services/auth';
 import './style.css';
 
 const Sidebar = () => {
@@ -17,34 +18,30 @@ const Sidebar = () => {
   const navigate = router.push;
   const pathname = usePathname();
   const { requests, userProfile } = useApp();
+  const currentUserId = userProfile.id || userProfile.email || 'guest_user';
 
-  // @ts-ignore
-  const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
-  const currentUserId = tg?.initDataUnsafe?.user ? `user_${tg.initDataUnsafe.user.id}` : 'guest_user';
-  
   const pendingCount = requests.filter(r => r.senderId !== currentUserId && r.status === 'Pending').length;
 
   // Determine active path - parent pages highlighted for child routes
   const isActive = (path: string) => {
+    if (path === '/dashboard' && (pathname === '/dashboard' || pathname === '/')) return true;
     if (path === '/active-cases') {
-      return pathname === '/active-cases' || pathname === '/patient-detail' || pathname === '/message-specialist';
+      return pathname === '/active-cases' || pathname.startsWith('/patient-detail') || pathname.startsWith('/message-specialist');
     }
-    return pathname === path;
+    return pathname === path || (path !== '/' && pathname.startsWith(path));
   };
 
   const navItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard', badge: 0 },
     { icon: <ClipboardList size={20} />, label: 'Active Cases', path: '/active-cases', badge: 0 },
     { icon: <MessageSquare size={20} />, label: 'Requests', path: '/requests', badge: pendingCount },
-    { icon: <Users size={20} />, label: 'Specialist', path: '/specialist', badge: 0 },
+    { icon: <Users size={20} />, label: 'Specialists', path: '/specialist', badge: 0 },
     { icon: <Archive size={20} />, label: 'Archive Cases', path: '/archive-cases', badge: 0 },
     { icon: <SettingsIcon size={20} />, label: 'Settings', path: '/settings', badge: 0 },
   ];
 
   const handleLogout = () => {
-    // Clear session and redirect to login
-    localStorage.removeItem('provider_session');
-    navigate('/login');
+    authService.logout();
   };
   const userInitials = `${userProfile.firstName.charAt(0)}${userProfile.lastName.charAt(0)}`;
 

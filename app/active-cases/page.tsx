@@ -7,7 +7,6 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
-  Activity,
   Filter,
   Search,
   Check
@@ -15,15 +14,15 @@ import {
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import { useApp } from '@/context/AppContext';
-import './style.css';
+import styles from './style.module.css';
 
 const URGENCY_LEVELS = [
   { id: 'all', label: 'All Urgency', value: null },
-  { id: 'IMMEDIATE', label: 'Immediate Life-threatening', color: '#ef4444' },
-  { id: 'EMERGENCY', label: 'Emergency', color: '#ec4899' },
-  { id: 'URGENT', label: 'Urgency', color: '#f59e0b' },
-  { id: 'SEMI-URGENT', label: 'Semi-urgency', color: '#10b981' },
-  { id: 'NON-URGENT', label: 'Non-urgency', color: '#64748b' },
+  { id: 'IMMEDIATE', label: 'Immediate Life-threatening', colorClass: 'color-immediate' },
+  { id: 'EMERGENCY', label: 'Emergency', colorClass: 'color-emergency' },
+  { id: 'URGENT', label: 'Urgency', colorClass: 'color-urgent' },
+  { id: 'SEMI-URGENT', label: 'Semi-urgency', colorClass: 'color-semi-urgent' },
+  { id: 'NON-URGENT', label: 'Non-urgency', colorClass: 'color-non-urgent' },
 ];
 
 const HOSPITALS = [
@@ -43,18 +42,16 @@ function ActiveCases() {
   const router = useRouter();
   const navigate = router.push;
   const { activeCases, selectCase, userProfile } = useApp();
+  const cx = (...names: Array<string | false | null | undefined>) =>
+    names.filter(Boolean).map((name) => styles[name as string]).join(' ');
 
-  // Filter States
   const [urgencyFilter, setUrgencyFilter] = useState<string | null>(null);
   const [hospitalFilter, setHospitalFilter] = useState<string>('All Hospitals');
   const [viewFilter, setViewFilter] = useState<'All' | 'Internal' | 'External'>('All');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Dropdown UI States
   const [isUrgencyOpen, setIsUrgencyOpen] = useState(false);
   const [isHospitalOpen, setIsHospitalOpen] = useState(false);
 
-  // Refs for closing dropdowns
   const urgencyRef = useRef<HTMLDivElement>(null);
   const hospitalRef = useRef<HTMLDivElement>(null);
 
@@ -72,22 +69,22 @@ function ActiveCases() {
     navigate('/patient-detail');
   };
 
-  const filteredCases = useMemo(() => {
-    return activeCases.filter(c => {
-      // 1. Urgency Filter
-      if (urgencyFilter && c.priority !== urgencyFilter) return false;
+  const handlePatientClick = (id: string) => {
+    selectCase(id);
+    navigate('/patient-detail');
+  };
 
-      // 2. Hospital Filter
+  const filteredCases = useMemo(() => {
+    return activeCases.filter((c) => {
+      if (urgencyFilter && c.priority !== urgencyFilter) return false;
       if (hospitalFilter !== 'All Hospitals' && c.hospital !== hospitalFilter) return false;
 
-      // 3. View Filter (Internal/External)
       if (viewFilter === 'Internal') {
         if (c.hospital !== userProfile.hospital) return false;
       } else if (viewFilter === 'External') {
         if (c.hospital === userProfile.hospital) return false;
       }
 
-      // 4. Search Filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -103,50 +100,49 @@ function ActiveCases() {
 
   return (
     <Layout>
-      <div className="active-cases-wrapper">
-        <div className="page-header">
-          <div className="header-left">
+      <div className={styles['active-cases-wrapper']}>
+        <div className={styles['page-header']}>
+          <div className={styles['header-left']}>
             <h1>Active Cases</h1>
-            <p className="page-subtitle">Monitor and manage high-priority interhospital consultations.</p>
+            <p className={styles['page-subtitle']}>Monitor and manage high-priority interhospital consultations.</p>
           </div>
-          <div className="search-bar-wrap">
-            <Search size={18} className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Search by ID or Name..." 
+          <div className={styles['search-bar-wrap']}>
+            <Search size={18} className={styles['search-icon']} />
+            <input
+              type="text"
+              placeholder="Search by ID or Name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="controls-bar">
-          <div className="filters-left">
-            <span className="filter-label">QUICK FILTERS:</span>
+        <div className={styles['controls-bar']}>
+          <div className={styles['filters-left']}>
+            <span className={styles['filter-label']}>QUICK FILTERS:</span>
 
-            {/* Urgency Dropdown */}
-            <div className="dropdown-wrap" ref={urgencyRef}>
-              <button 
-                className={`filter-dropdown-btn ${urgencyFilter ? 'active' : ''}`}
+            <div className={styles['dropdown-wrap']} ref={urgencyRef}>
+              <button
+                className={cx('filter-dropdown-btn', urgencyFilter && 'active')}
                 onClick={() => setIsUrgencyOpen(!isUrgencyOpen)}
               >
-                <AlertCircle size={16} className={urgencyFilter ? '' : 'text-purple'} />
-                {urgencyFilter ? URGENCY_LEVELS.find(u => u.id === urgencyFilter)?.label : 'Urgency'}
-                <ChevronDown size={14} className={isUrgencyOpen ? 'rotate-180' : ''} />
+                <AlertCircle size={16} className={!urgencyFilter ? styles['text-purple'] : undefined} />
+                {urgencyFilter ? URGENCY_LEVELS.find((u) => u.id === urgencyFilter)?.label : 'Urgency'}
+                <ChevronDown size={14} className={isUrgencyOpen ? styles['rotate-180'] : undefined} />
               </button>
               {isUrgencyOpen && (
-                <div className="custom-dropdown-menu">
-                  {URGENCY_LEVELS.map(level => (
-                    <button 
-                      key={level.id} 
-                      className={`dropdown-item ${urgencyFilter === level.id ? 'active' : ''}`}
+                <div className={styles['custom-dropdown-menu']}>
+                  {URGENCY_LEVELS.map((level) => (
+                    <button
+                      key={level.id}
+                      className={cx('dropdown-item', urgencyFilter === level.id && 'active')}
                       onClick={() => {
                         setUrgencyFilter(level.id === 'all' ? null : level.id);
                         setIsUrgencyOpen(false);
                       }}
                     >
-                      <div className="item-content">
-                        {level.color && <span className="color-dot" style={{ backgroundColor: level.color }}></span>}
+                      <div className={styles['item-content']}>
+                        {level.colorClass && <span className={cx('color-dot', level.colorClass)}></span>}
                         {level.label}
                       </div>
                       {urgencyFilter === level.id && <Check size={14} />}
@@ -156,22 +152,21 @@ function ActiveCases() {
               )}
             </div>
 
-            {/* Hospital Dropdown */}
-            <div className="dropdown-wrap" ref={hospitalRef}>
-              <button 
-                className={`filter-dropdown-btn ${hospitalFilter !== 'All Hospitals' ? 'active' : ''}`}
+            <div className={styles['dropdown-wrap']} ref={hospitalRef}>
+              <button
+                className={cx('filter-dropdown-btn', hospitalFilter !== 'All Hospitals' && 'active')}
                 onClick={() => setIsHospitalOpen(!isHospitalOpen)}
               >
-                <span className="hospital-icon-mini">🏥</span>
+                <span className={styles['hospital-icon-mini']}>🏥</span>
                 {hospitalFilter === 'All Hospitals' ? 'Primary Hospital' : hospitalFilter}
-                <ChevronDown size={14} className={isHospitalOpen ? 'rotate-180' : ''} />
+                <ChevronDown size={14} className={isHospitalOpen ? styles['rotate-180'] : undefined} />
               </button>
               {isHospitalOpen && (
-                <div className="custom-dropdown-menu wide">
-                  {HOSPITALS.map(h => (
-                    <button 
-                      key={h} 
-                      className={`dropdown-item ${hospitalFilter === h ? 'active' : ''}`}
+                <div className={cx('custom-dropdown-menu', 'wide')}>
+                  {HOSPITALS.map((h) => (
+                    <button
+                      key={h}
+                      className={cx('dropdown-item', hospitalFilter === h && 'active')}
                       onClick={() => {
                         setHospitalFilter(h);
                         setIsHospitalOpen(false);
@@ -186,21 +181,21 @@ function ActiveCases() {
             </div>
           </div>
 
-          <div className="filter-toggles">
-            <button 
-              className={`toggle-btn ${viewFilter === 'All' ? 'active' : ''}`}
+          <div className={styles['filter-toggles']}>
+            <button
+              className={cx('toggle-btn', viewFilter === 'All' && 'active')}
               onClick={() => setViewFilter('All')}
             >
               All Cases
             </button>
-            <button 
-              className={`toggle-btn ${viewFilter === 'Internal' ? 'active' : ''}`}
+            <button
+              className={cx('toggle-btn', viewFilter === 'Internal' && 'active')}
               onClick={() => setViewFilter('Internal')}
             >
               Internal
             </button>
-            <button 
-              className={`toggle-btn ${viewFilter === 'External' ? 'active' : ''}`}
+            <button
+              className={cx('toggle-btn', viewFilter === 'External' && 'active')}
               onClick={() => setViewFilter('External')}
             >
               External
@@ -208,8 +203,8 @@ function ActiveCases() {
           </div>
         </div>
 
-        <div className="table-container">
-          <table className="data-table">
+        <div className={styles['table-container']}>
+          <table className={styles['data-table']}>
             <thead>
               <tr>
                 <th>CASE ID</th>
@@ -222,56 +217,99 @@ function ActiveCases() {
             </thead>
             <tbody>
               {filteredCases.map((caseItem) => (
-                <tr 
-                  key={caseItem.id} 
+                <tr
+                  key={caseItem.id}
                   onClick={() => handleRowClick(caseItem.id)}
-                  style={{ cursor: 'pointer' }}
-                  className="table-row-hover"
+                  className={cx('table-row-hover', 'row-clickable')}
                 >
-                  <td className="case-id-cell">
-                    <span className="id-badge">#{caseItem.id}</span>
+                  <td className={styles['case-id-cell']}>
+                    <span className={styles['id-badge']}>#{caseItem.id}</span>
                   </td>
                   <td>
-                    <div className="patient-cell">
-                      <span className={`patient-avatar ${
-                        caseItem.priority === 'IMMEDIATE' ? 'bg-red' : 
-                        caseItem.priority === 'EMERGENCY' ? 'bg-pink' : 
-                        caseItem.priority === 'URGENT' ? 'bg-yellow' : 
-                        caseItem.priority === 'SEMI-URGENT' ? 'bg-green' : 'bg-gray'
-                      }`}>
-                        {caseItem.patientName.split(' ').map(n => n[0]).join('')}
+                    <div className={styles['patient-cell']}>
+                      <span
+                        className={cx(
+                          'patient-avatar',
+                          caseItem.priority === 'IMMEDIATE'
+                            ? 'bg-red'
+                            : caseItem.priority === 'EMERGENCY'
+                              ? 'bg-pink'
+                              : caseItem.priority === 'URGENT'
+                                ? 'bg-yellow'
+                                : caseItem.priority === 'SEMI-URGENT'
+                                  ? 'bg-green'
+                                  : 'bg-gray'
+                        )}
+                      >
+                        {caseItem.patientName.split(' ').map((n) => n[0]).join('')}
                       </span>
-                      <span className="font-bold text-dark">{caseItem.patientName}</span>
+                      <span
+                        className={cx('font-bold', 'text-dark')}
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePatientClick(caseItem.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePatientClick(caseItem.id);
+                          }
+                        }}
+                      >
+                        {caseItem.patientName}
+                      </span>
                     </div>
                   </td>
                   <td>
-                    <div className="hospital-cell">
-                      {caseItem.hospital}
+                    <div className={styles['hospital-cell']}>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePatientClick(caseItem.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePatientClick(caseItem.id);
+                          }
+                        }}
+                      >
+                        {caseItem.hospital}
+                      </span>
                     </div>
                   </td>
                   <td>
-                    <span className={`priority-badge-large ${caseItem.priority.toLowerCase()}`}>
-                      {URGENCY_LEVELS.find(u => u.id === caseItem.priority)?.label || caseItem.priority}
+                    <span className={cx('priority-badge-large', caseItem.priority.toLowerCase())}>
+                      {URGENCY_LEVELS.find((u) => u.id === caseItem.priority)?.label || caseItem.priority}
                     </span>
                   </td>
                   <td>
-                    <div className="activity-cell text-gray">
-                      <Clock size={14} className="mr-1"/> {caseItem.lastActiveTime || caseItem.date}
+                    <div className={cx('activity-cell', 'text-gray')}>
+                      <Clock size={14} className={styles['mr-1']} />
+                      {caseItem.lastActiveTime || caseItem.date}
                     </div>
                   </td>
-                  <td onClick={e => e.stopPropagation()}>
-                    <button className="more-btn"><MoreVertical size={16}/></button>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <button className={styles['more-btn']}><MoreVertical size={16} /></button>
                   </td>
                 </tr>
               ))}
               {filteredCases.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
-                    <div className="empty-state">
+                  <td colSpan={6} className={styles['empty-table-cell']}>
+                    <div className={styles['empty-state']}>
                       <Filter size={40} strokeWidth={1.5} />
                       <p>No matching active cases found.</p>
-                      <button 
-                        className="reset-filters-btn"
+                      <button
+                        className={styles['reset-filters-btn']}
                         onClick={() => {
                           setUrgencyFilter(null);
                           setHospitalFilter('All Hospitals');
@@ -289,12 +327,12 @@ function ActiveCases() {
           </table>
         </div>
 
-        <div className="pagination-bar">
-          <span className="pagination-text">Showing <strong>{filteredCases.length}</strong> of <strong>{activeCases.length}</strong> active cases</span>
-          <div className="pagination-controls">
-            <button className="page-nav-btn"><ChevronLeft size={16} /></button>
-            <button className="page-num-btn active">1</button>
-            <button className="page-nav-btn"><ChevronRight size={16} /></button>
+        <div className={styles['pagination-bar']}>
+          <span className={styles['pagination-text']}>Showing <strong>{filteredCases.length}</strong> of <strong>{activeCases.length}</strong> active cases</span>
+          <div className={styles['pagination-controls']}>
+            <button className={styles['page-nav-btn']}><ChevronLeft size={16} /></button>
+            <button className={cx('page-num-btn', 'active')}>1</button>
+            <button className={styles['page-nav-btn']}><ChevronRight size={16} /></button>
           </div>
         </div>
       </div>

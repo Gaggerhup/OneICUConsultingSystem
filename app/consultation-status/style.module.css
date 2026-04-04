@@ -15,7 +15,7 @@
   font-size: 0.875rem;
 }
 
-.back-link {
+.case-overview-wrapper .back-link {
   color: #4318FF;
   font-weight: 700;
   display: flex;
@@ -24,13 +24,13 @@
   text-decoration: none;
 }
 
-.case-number {
+.case-overview-wrapper .case-number {
   color: #64748b;
   font-weight: 600;
 }
 
 /* Header Card (Patient Info) */
-.case-patient-header {
+.case-overview-wrapper .case-patient-header {
   background: white;
   border-radius: 32px;
   padding: 2.5rem;
@@ -42,13 +42,13 @@
   border: 1px solid #f1f5f9;
 }
 
-.patient-identity {
+.case-overview-wrapper .patient-identity {
   display: flex;
   align-items: center;
   gap: 2rem;
 }
 
-.patient-circle-jd {
+.case-overview-wrapper .patient-circle-jd {
   width: 90px;
   height: 90px;
   background: #4318FF;
@@ -61,7 +61,7 @@
   font-weight: 700;
 }
 
-.patient-text-block h1 {
+.case-overview-wrapper .patient-text-block h1 {
   font-size: 2.25rem;
   font-weight: 800;
   color: #1a202c;
@@ -131,14 +131,14 @@
   border: 1px solid #e2e8f0;
 }
 
-.patient-meta-row {
+.case-overview-wrapper .patient-meta-row {
   font-size: 1rem;
   color: #64748b;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
 
-.patient-id-list {
+.case-overview-wrapper .patient-id-list {
   font-size: 0.8125rem;
   color: #94a3b8;
   font-weight: 600;
@@ -146,12 +146,12 @@
 }
 
 /* Header Actions */
-.header-action-buttons {
+.case-overview-wrapper .header-action-buttons {
   display: flex;
   gap: 1rem;
 }
 
-.btn-header {
+.case-overview-wrapper .btn-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -163,31 +163,31 @@
   transition: all 0.2s;
 }
 
-.btn-send-msg {
+.case-overview-wrapper .btn-send-msg {
   background: #4318FF;
   color: white;
   border: none;
 }
 
-.btn-outline-purple {
+.case-overview-wrapper .btn-outline-purple {
   background: white;
   color: #4318FF;
   border: 1px solid #e2e8f0;
 }
 
-.btn-outline-purple:hover {
+.case-overview-wrapper .btn-outline-purple:hover {
   border-color: #4318FF;
   background: #f5f3ff;
 }
 
-.btn-close-case {
+.case-overview-wrapper .btn-close-case {
   background: #1e293b;
   color: white;
   border: none;
 }
 
 /* Secondary Layout Grid */
-.case-details-grid {
+.case-overview-wrapper .case-details-grid {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 2rem;
@@ -195,7 +195,7 @@
 }
 
 /* Sidebar: Medical History */
-.medical-history-sidebar {
+.case-overview-wrapper .medical-history-sidebar {
   background: white;
   border-radius: 24px;
   padding: 2rem;
@@ -203,18 +203,73 @@
   border: 1px solid #f1f5f9;
 }
 
-.sidebar-section-header {
+.case-overview-wrapper .sidebar-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.sidebar-section-header span {
+.case-overview-wrapper .sidebar-section-header span {
   font-size: 0.75rem;
   font-weight: 800;
   color: #94a3b8;
   letter-spacing: 0.1em;
+}
+
+.team-section-header {
+  margin-top: 3rem;
+}
+
+.team-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-member-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.team-member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.team-member-meta {
+  flex: 1;
+}
+
+.team-member-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.team-member-specialty {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.invite-consultant-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  background: none;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .medical-data-group {
@@ -258,7 +313,7 @@
 }
 
 /* Main Area: Tabs & Content */
-.main-clinical-area {
+.case-overview-wrapper .main-clinical-area {
   background: white;
   border-radius: 32px;
   padding: 1rem;
@@ -266,14 +321,14 @@
   border: 1px solid #f1f5f9;
 }
 
-.tabs-nav {
+.case-overview-wrapper .tabs-nav {
   display: flex;
   gap: 2.5rem;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.tab-btn {
+.case-overview-wrapper .tab-btn {
   background: none;
   border: none;
   font-size: 1.0625rem;
@@ -285,11 +340,11 @@
   white-space: nowrap;
 }
 
-.tab-btn.active {
+.case-overview-wrapper .tab-btn.active {
   color: #4318FF;
 }
 
-.tab-btn.active::after {
+.case-overview-wrapper .tab-btn.active::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -306,8 +361,19 @@
   margin-left: 0.4rem;
 }
 
-.tab-content-pane {
+.case-overview-wrapper .tab-content-pane {
   padding: 2.5rem;
+}
+
+.placeholder-pane {
+  text-align: center;
+  padding: 5rem;
+  color: #94a3b8;
+}
+
+.placeholder-icon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
 /* Vitals Grid */
@@ -419,4 +485,117 @@
 
 .footer-links a:hover {
   color: #64748b;
+}
+
+@media (max-width: 1100px) {
+  .case-overview-wrapper .case-patient-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .case-overview-wrapper .header-action-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .case-overview-wrapper .case-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .case-overview-wrapper .breadcrumb-nav {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .case-overview-wrapper .case-patient-header {
+    border-radius: 24px;
+    padding: 1.5rem;
+  }
+
+  .case-overview-wrapper .patient-identity {
+    align-items: flex-start;
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .case-overview-wrapper .patient-text-block h1 {
+    font-size: 1.75rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .case-overview-wrapper .btn-header {
+    flex: 1 1 calc(50% - 0.5rem);
+    justify-content: center;
+  }
+
+  .case-overview-wrapper .tabs-nav {
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+  }
+
+  .case-overview-wrapper .tab-content-pane {
+    padding: 1.5rem;
+  }
+
+  .case-overview-wrapper .vitals-grid-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .case-overview-wrapper .medical-history-sidebar,
+  .case-overview-wrapper .main-clinical-area {
+    border-radius: 24px;
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .case-overview-wrapper .case-patient-header {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+
+  .case-overview-wrapper .patient-circle-jd {
+    width: 72px;
+    height: 72px;
+    font-size: 2rem;
+  }
+
+  .case-overview-wrapper .patient-text-block h1 {
+    font-size: 1.375rem;
+  }
+
+  .case-overview-wrapper .patient-meta-row {
+    font-size: 0.9rem;
+  }
+
+  .case-overview-wrapper .header-action-buttons {
+    flex-direction: column;
+  }
+
+  .case-overview-wrapper .btn-header {
+    width: 100%;
+  }
+
+  .case-overview-wrapper .vitals-grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .case-overview-wrapper .main-clinical-area {
+    overflow-x: auto;
+  }
+
+  .case-overview-wrapper .modern-labs-table {
+    min-width: 520px;
+  }
+
+  .case-overview-wrapper .tab-content-pane {
+    padding: 1rem;
+  }
 }

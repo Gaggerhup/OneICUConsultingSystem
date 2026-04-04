@@ -1,18 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+'use client';
+
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { authService } from '@/services/auth';
 
 export interface UserProfile {
-  title: string;
+  id?: string;
+  title: string | null;
   firstName: string;
   lastName: string;
-  specialty: string;
-  hospital: string;
+  specialty: string | null;
+  hospital: string | null;
   email: string;
   avatarUrl: string | null;
-  phoneNumber: string;
+  phoneNumber: string | null;
   isAcceptingCases: boolean;
   isAcceptingNotifications: boolean;
-  license?: string;
+  license?: string | null;
   notifPrefs: {
     newRequest: boolean;
     requestApproved: boolean;
@@ -23,65 +26,35 @@ export interface UserProfile {
   };
 }
 
-/** Read Provider ID session from localStorage for initial state */
-const DEFAULT_PROFILE: UserProfile = {
-  title: 'Dr.',
-  firstName: '',
-  lastName: '',
-  specialty: '',
-  hospital: '',
-  email: '',
-  avatarUrl: null,
-  phoneNumber: '+66',
-  isAcceptingCases: true,
-  isAcceptingNotifications: true,
-  license: '',
-  notifPrefs: {
-    newRequest: true,
-    requestApproved: true,
-    newMessage: true,
-    caseUpdate: false,
-    weeklyReport: true,
-    systemAlert: true,
-  },
-};
-
-function getInitialProfile(): UserProfile {
-  if (typeof window === 'undefined') return DEFAULT_PROFILE;
-  try {
-    const profile = authService.getUserProfile();
-    return profile ? { ...DEFAULT_PROFILE, ...profile } : DEFAULT_PROFILE;
-  } catch (err) {
-    console.error('[AppContext] Failed to load initial profile', err);
-    return DEFAULT_PROFILE;
-  }
-}
-
-
-/**
- * App Context - Centralized State Management
- */
-
 export interface Case {
   id: string;
   patientName: string;
   hospital: string;
   status: 'Pending' | 'Approved' | 'Declined' | 'Active' | 'Critical' | 'Archived' | 'Discharge' | 'Referred' | 'Dead';
   priority: 'IMMEDIATE' | 'EMERGENCY' | 'URGENT' | 'SEMI-URGENT' | 'NON-URGENT';
-  date: string;
-  closeDate?: string;
-  closedTimestamp?: number;
-  specialty?: string;
-  age?: number;
-  gender?: string;
-  reason?: string;
+  date?: string | null;
+  closeDate?: string | null;
+  closedTimestamp?: number | Date | null;
+  specialty?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  reason?: string | null;
   type?: 'incoming' | 'sent';
-  lastAction?: string;
-  lastActiveTime?: string;
-  senderId?: string;
+  lastAction?: string | null;
+  lastActiveTime?: string | null;
+  senderId?: string | null;
+  hn?: string | null;
+  an?: string | null;
+  cid?: string | null;
+  bloodType?: string | null;
+  allergies?: string[] | null;
+  conditions?: string[] | null;
+  currentSymptoms?: string | null;
+  initialDiagnosis?: string | null;
+  clinicalNotes?: string | null;
 }
 
-interface Notification {
+export interface Notification {
   id: string;
   title: string;
   message: string;
@@ -90,7 +63,7 @@ interface Notification {
   type: 'request' | 'message' | 'alert';
 }
 
-interface Toast {
+export interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
@@ -101,20 +74,14 @@ export interface ActivityLogItem {
   title: string;
   desc: string;
   time: string;
-  details?: string;
+  details?: string | null;
   icon: 'alert' | 'note' | 'system' | 'update';
   timestamp: number;
 }
 
-
 export interface SpecialistMember extends UserProfile {
   id: string;
   status: 'online' | 'away' | 'dnd';
-  availability: 'AVAILABLE' | 'IN SURGERY' | 'BUSY';
-  role: 'Specialist' | 'Consultant';
-  rating: number;
-  consultations: number;
-  nextAppt: string;
 }
 
 interface AppContextType {
@@ -127,408 +94,570 @@ interface AppContextType {
   userProfile: UserProfile;
   specialists: SpecialistMember[];
   activities: ActivityLogItem[];
-  approveRequest: (id: string) => void;
-  declineRequest: (id: string) => void;
-  closeCase: (id: string, outcome?: 'Discharge' | 'Referred' | 'Dead') => void;
-  reactivateCase: (id: string) => void;
-  addRequest: (data: Omit<Case, 'id' | 'status' | 'date'>) => string;
+  approveRequest: (id: string) => Promise<void>;
+  declineRequest: (id: string) => Promise<void>;
+  closeCase: (id: string, outcome?: 'Discharge' | 'Referred' | 'Dead') => Promise<void>;
+  reactivateCase: (id: string) => Promise<void>;
+  addRequest: (data: Omit<Case, 'id' | 'status' | 'date'>) => Promise<string>;
   selectCase: (id: string) => void;
   clearSelectedCase: () => void;
-  markNotificationAsRead: (id: string) => void;
-  clearNotifications: () => void;
+  markNotificationAsRead: (id: string) => Promise<void>;
+  clearNotifications: () => Promise<void>;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  updateUserProfile: (profile: Partial<UserProfile>) => void;
-  refreshActivities: () => void;
+  updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  refreshActivities: () => Promise<void>;
+  fetchData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [requests, setRequests] = useState<Case[]>([]);
-  const [activeCases, setActiveCases] = useState<Case[]>([]);
-  const [archiveCases, setArchiveCases] = useState<Case[]>([]);
+const STORAGE_KEYS = {
+  requests: 'app_requests',
+  activeCases: 'app_active_cases',
+  archiveCases: 'app_archive_cases',
+  notifications: 'app_notifications',
+  activities: 'app_activities',
+  specialists: 'app_specialists',
+  selectedCase: 'app_selected_case',
+};
 
-  // Fetch cases from shared backend registry
-  useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const res = await fetch('http://localhost:3001/cases');
-        const data: Case[] = await res.json();
-        
-        setRequests(data.filter(c => c.status === 'Pending' || c.status === 'Declined'));
-        setActiveCases(data.filter(c => c.status === 'Active' || c.status === 'Critical'));
-        setArchiveCases(data.filter(c => ['Archived', 'Discharge', 'Referred', 'Dead'].includes(c.status)));
-        
-        // Update next ID based on existing cases
-        const maxId = data.reduce((max, c) => Math.max(max, parseInt(c.id) || 0), 107);
-        setNextCaseId(maxId + 1);
-      } catch (err) {
-        console.warn('[Fetch Cases Warning] Backend not running. Falling back to initial state.', err);
-      }
-    };
-    fetchCases();
-  }, []);
+const defaultUserProfile: UserProfile = {
+  id: 'user_default',
+  title: 'Dr.',
+  firstName: 'Admin',
+  lastName: 'User',
+  specialty: 'General Medicine',
+  hospital: 'โรงพยาบาลพุทธชินราช พิษณุโลก',
+  email: 'admin@example.com',
+  avatarUrl: null,
+  phoneNumber: '0800000000',
+  isAcceptingCases: true,
+  isAcceptingNotifications: true,
+  license: 'MD-0001',
+  notifPrefs: {
+    newRequest: true,
+    requestApproved: true,
+    newMessage: true,
+    caseUpdate: true,
+    weeklyReport: false,
+    systemAlert: true,
+  },
+};
 
-  const [nextCaseId, setNextCaseId] = useState(108);
+const createNow = () => new Date().toLocaleString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: 'n1', title: 'New Request', message: 'Urgent transfer request for Johnathan Doe', time: '2m ago', read: false, type: 'request' },
-    { id: 'n2', title: 'Message from Specialist', message: 'Dr. Lee: "Vitals are stabilizing."', time: '1h ago', read: false, type: 'message' },
-  ]);
+const createCaseId = () => `case_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+const createItemId = (prefix: string) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
+const normalizeHospitalName = (value: string | null | undefined) => {
+  switch ((value || '').trim()) {
+    case 'Phitsanulok General Hospital':
+    case 'Pitsanulok Hospital':
+      return 'โรงพยาบาลพุทธชินราช พิษณุโลก';
+    case 'Mueang Phitsanulok Hospital':
+      return 'โรงพยาบาลเมืองพิษณุโลก';
+    case 'Bang Krathum Hospital':
+      return 'โรงพยาบาลบางกระทุ่ม';
+    case 'Phrom Phiram Hospital':
+      return 'โรงพยาบาลพรหมพิราม';
+    case 'Wang Thong Hospital':
+      return 'โรงพยาบาลวังทอง';
+    default:
+      return value || null;
+  }
+};
+
+const normalizeCaseHospitals = <T extends { hospital: string }>(items: T[]) =>
+  items.map((item) => ({
+    ...item,
+    hospital: normalizeHospitalName(item.hospital) || item.hospital,
+  }));
+
+const defaultRequests: Case[] = [
+  {
+    id: 'REQ-1001',
+    patientName: 'Somsak K.',
+    hospital: 'โรงพยาบาลเมืองพิษณุโลก',
+    status: 'Pending',
+    priority: 'URGENT',
+    date: 'Apr 2, 2026',
+    specialty: 'Cardiology',
+    age: 68,
+    gender: 'Male',
+    reason: 'Chest pain and shortness of breath',
+    type: 'incoming',
+    lastAction: 'Awaiting review',
+    lastActiveTime: '12 min ago',
+    senderId: 'user_01',
+    hn: 'HN1001',
+    an: 'AN1001',
+    cid: '1111700200011',
+    bloodType: 'A',
+    allergies: ['Penicillin'],
+    conditions: ['Hypertension'],
+    currentSymptoms: 'Severe chest tightness',
+    initialDiagnosis: 'Suspected ACS',
+    clinicalNotes: 'ECG recommended immediately.',
+  },
+  {
+    id: 'REQ-1002',
+    patientName: 'Malee P.',
+    hospital: 'โรงพยาบาลบางกระทุ่ม',
+    status: 'Pending',
+    priority: 'SEMI-URGENT',
+    date: 'Apr 2, 2026',
+    specialty: 'Internal Medicine',
+    age: 54,
+    gender: 'Female',
+    reason: 'Fever and cough',
+    type: 'incoming',
+    lastAction: 'Waiting for specialist',
+    lastActiveTime: '28 min ago',
+    senderId: 'user_02',
+    hn: 'HN1002',
+    an: 'AN1002',
+    cid: '1111700200022',
+    bloodType: 'B',
+    allergies: [],
+    conditions: ['Diabetes'],
+    currentSymptoms: 'Fever 38.5 C',
+    initialDiagnosis: 'Possible pneumonia',
+    clinicalNotes: 'Started empiric antibiotics.',
+  },
+];
+
+const defaultActiveCases: Case[] = [
+  {
+    id: 'CASE-2001',
+    patientName: 'Niran S.',
+    hospital: 'โรงพยาบาลพรหมพิราม',
+    status: 'Active',
+    priority: 'EMERGENCY',
+    date: 'Apr 1, 2026',
+    specialty: 'Neurology',
+    age: 71,
+    gender: 'Male',
+    reason: 'Altered consciousness',
+    type: 'incoming',
+    lastAction: 'Neurology consult in progress',
+    lastActiveTime: '5 min ago',
+    senderId: 'user_03',
+    hn: 'HN2001',
+    an: 'AN2001',
+    cid: '1111700200033',
+    bloodType: 'O',
+    allergies: ['Latex'],
+    conditions: ['Stroke'],
+    currentSymptoms: 'GCS 10',
+    initialDiagnosis: 'Acute stroke',
+    clinicalNotes: 'CT brain pending.',
+  },
+  {
+    id: 'CASE-2002',
+    patientName: 'Sudarat K.',
+    hospital: 'โรงพยาบาลวังทอง',
+    status: 'Critical',
+    priority: 'IMMEDIATE',
+    date: 'Apr 1, 2026',
+    specialty: 'Pulmonology',
+    age: 46,
+    gender: 'Female',
+    reason: 'Respiratory distress',
+    type: 'sent',
+    lastAction: 'ICU transfer arranged',
+    lastActiveTime: '18 min ago',
+    senderId: 'user_04',
+    hn: 'HN2002',
+    an: 'AN2002',
+    cid: '1111700200044',
+    bloodType: 'B',
+    allergies: [],
+    conditions: ['Asthma'],
+    currentSymptoms: 'SpO2 88%',
+    initialDiagnosis: 'Acute asthma exacerbation',
+    clinicalNotes: 'BiPAP started.',
+  },
+];
+
+const defaultArchiveCases: Case[] = [];
+
+const defaultNotifications: Notification[] = [
+  { id: 'notif_1', title: 'New request received', message: 'A new consult request needs attention.', time: '10 min ago', read: false, type: 'request' },
+  { id: 'notif_2', title: 'Case updated', message: 'Critical case status changed to Active.', time: '32 min ago', read: false, type: 'alert' },
+];
+
+const defaultActivities: ActivityLogItem[] = [
+  { id: 'act_1', title: 'Request received', desc: 'Cardiology request created', time: '12 min ago', icon: 'alert', timestamp: Date.now() - 12 * 60 * 1000 },
+  { id: 'act_2', title: 'Case reviewed', desc: 'Neurology consult reviewed', time: '40 min ago', icon: 'note', timestamp: Date.now() - 40 * 60 * 1000 },
+];
+
+const defaultSpecialists: SpecialistMember[] = [
+  {
+    id: 'sp_1',
+    title: 'Dr.',
+    firstName: 'Anong',
+    lastName: 'Kittisak',
+    specialty: 'Cardiology',
+    hospital: 'โรงพยาบาลพุทธชินราช พิษณุโลก',
+    email: 'anong@example.com',
+    avatarUrl: null,
+    phoneNumber: '0811111111',
+    isAcceptingCases: true,
+    isAcceptingNotifications: true,
+    license: 'MD-1001',
+    notifPrefs: defaultUserProfile.notifPrefs,
+    status: 'online',
+  },
+];
+
+const safeRead = <T,>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const safeWrite = (key: string, value: unknown) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(key, JSON.stringify(value));
+};
+
+const loadInitialProfile = (): UserProfile => {
+  const saved = typeof window === 'undefined' ? null : authService.getUserProfile();
+  if (!saved) return defaultUserProfile;
+  return {
+    ...saved,
+    hospital: normalizeHospitalName(saved.hospital),
+  };
+};
+
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile);
+  const [requests, setRequests] = useState<Case[]>(defaultRequests);
+  const [activeCases, setActiveCases] = useState<Case[]>(defaultActiveCases);
+  const [archiveCases, setArchiveCases] = useState<Case[]>(defaultArchiveCases);
+  const [notifications, setNotifications] = useState<Notification[]>(defaultNotifications);
+  const [activities, setActivities] = useState<ActivityLogItem[]>(defaultActivities);
+  const [specialists, setSpecialists] = useState<SpecialistMember[]>(defaultSpecialists);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  // Initialize userProfile directly from localStorage on first render
-  const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-
-  // Health ID Profile Synchronization
-  // This effect ensures that the profile is correctly loaded on mount,
-  // and re-synced if the storage changes in another tab.
-  useEffect(() => {
-    let lastProfileRaw = '';
-
-    const syncProfile = () => {
-      const raw = localStorage.getItem('user_profile') || localStorage.getItem('provider_session') || '';
-      // Only update if the raw storage string has actually changed
-      if (lastProfileRaw !== raw) {
-        lastProfileRaw = raw;
-        setUserProfile(getInitialProfile());
-      }
-    };
-
-    // Initial sync
-    syncProfile();
-
-    // Listen for storage changes from other tabs
-    window.addEventListener('storage', syncProfile);
-    
-    // We also set a short-lived interval to check for session changes
-    // after redirect, because AppContext stays mounted and storage event
-    // doesn't fire for the same window.
-    const interval = setInterval(syncProfile, 2000);
-
-    return () => {
-      window.removeEventListener('storage', syncProfile);
-      clearInterval(interval);
-    };
+  const persistState = useCallback((
+    nextRequests: Case[],
+    nextActiveCases: Case[],
+    nextArchiveCases: Case[],
+    nextNotifications: Notification[],
+    nextActivities: ActivityLogItem[],
+    nextSpecialists: SpecialistMember[],
+    nextSelectedCase: Case | null,
+  ) => {
+    safeWrite(STORAGE_KEYS.requests, nextRequests);
+    safeWrite(STORAGE_KEYS.activeCases, nextActiveCases);
+    safeWrite(STORAGE_KEYS.archiveCases, nextArchiveCases);
+    safeWrite(STORAGE_KEYS.notifications, nextNotifications);
+    safeWrite(STORAGE_KEYS.activities, nextActivities);
+    safeWrite(STORAGE_KEYS.specialists, nextSpecialists);
+    safeWrite(STORAGE_KEYS.selectedCase, nextSelectedCase);
   }, []);
 
-  const [activities, setActivities] = useState<ActivityLogItem[]>([
-    { 
-      id: 'a1', 
-      title: 'Emergency Alert', 
-      desc: 'Patient HC-9920 vitals dropped. Immediate review requested by Dr. Alan.', 
-      time: 'JUST NOW',
-      icon: 'alert',
-      timestamp: Date.now(),
-      details: 'Patient: Sarah Jenkins (HC-9920). Vitals: SpO2 88%, BP 90/60. Dr. Alan requested immediate cardiology consultation due to suspected acute coronary syndrome.'
-    },
-    { 
-      id: 'a2', 
-      title: 'New Case Note', 
-      desc: 'Nurse Sarah added lab results for Jane Smith (HC-8812).', 
-      time: '12 MINS AGO',
-      icon: 'note',
-      timestamp: Date.now() - 12 * 60 * 1000,
-      details: 'Comprehensive Metabolic Panel (CMP) results uploaded. Potassium levels slightly elevated (5.2 mEq/L). Notified attending physician.'
-    },
-    { 
-      id: 'a3', 
-      title: 'Specialist Online', 
-      desc: 'Dr. Michael Chen (Neurology) is now online.', 
-      time: '25 MINS AGO',
-      icon: 'system',
-      timestamp: Date.now() - 25 * 60 * 1000,
-      details: 'System Login: Dr. Michael Chen authenticated via HealthID at 14:48. Location: Siriraj Hospital.'
-    },
-    { 
-      id: 'a4', 
-      title: 'Case Approved', 
-      desc: 'Request for Patient HC-101 has been approved.', 
-      time: '1 HOUR AGO',
-      icon: 'update',
-      timestamp: Date.now() - 60 * 60 * 1000,
-      details: 'Consultation request for Johnathan Doe (HC-101) reviewed and approved by Medical Director. Assigned to Cardiology team.'
-    },
-    { 
-      id: 'a5', 
-      title: 'Lab Results Uploaded', 
-      desc: 'Blood tests for #106 are ready.', 
-      time: '4 DAYS AGO',
-      icon: 'note',
-      timestamp: Date.now() - 4 * 24 * 60 * 60 * 1000,
-      details: 'Complete Blood Count (CBC) and Troponin levels uploaded for Michael Chen.'
-    },
-    { 
-      id: 'a6', 
-      title: 'Critical Alert Resolved', 
-      desc: 'Emergency for #104 marked as resolved.', 
-      time: '10 DAYS AGO',
-      icon: 'update',
-      timestamp: Date.now() - 10 * 24 * 60 * 60 * 1000,
-      details: 'Patient #104 stabilized and transferred to regular ward. Specialist review complete.'
-    },
-    { 
-      id: 'a7', 
-      title: 'System Maintenance', 
-      desc: 'Monthly system backup completed successfully.', 
-      time: '40 DAYS AGO',
-      icon: 'system',
-      timestamp: Date.now() - 40 * 24 * 60 * 60 * 1000,
-      details: 'Automated monthly maintenance cycle. All databases backed up and verified.'
-    },
-  ]);
+  const refreshFromStorage = useCallback(async () => {
+    const nextProfile = loadInitialProfile();
+    const nextRequests = normalizeCaseHospitals(safeRead<Case[]>(STORAGE_KEYS.requests, defaultRequests));
+    const nextActiveCases = normalizeCaseHospitals(safeRead<Case[]>(STORAGE_KEYS.activeCases, defaultActiveCases));
+    const nextArchiveCases = normalizeCaseHospitals(safeRead<Case[]>(STORAGE_KEYS.archiveCases, defaultArchiveCases));
+    const nextNotifications = safeRead<Notification[]>(STORAGE_KEYS.notifications, defaultNotifications);
+    const nextActivities = safeRead<ActivityLogItem[]>(STORAGE_KEYS.activities, defaultActivities);
+    const nextSpecialists = safeRead<SpecialistMember[]>(STORAGE_KEYS.specialists, defaultSpecialists).map((spec) => ({
+      ...spec,
+      hospital: normalizeHospitalName(spec.hospital) || spec.hospital,
+    }));
+    const nextSelectedCase = safeRead<Case | null>(STORAGE_KEYS.selectedCase, null);
 
-  const [specialists] = useState<SpecialistMember[]>([
-    {
-      id: 's1', title: 'Dr.', firstName: 'Sarah', lastName: 'Jenkins', specialty: 'Cardiology', hospital: 'City General Hospital', email: 'sarah@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Sarah+Jenkins&background=14b8a6&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.9,      consultations: 124, nextAppt: 'Today, 2:30 PM', phoneNumber: '+66800000001',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    },
-    {
-      id: 's2', title: 'Dr.', firstName: 'Michael', lastName: 'Chen', specialty: 'Neurology', hospital: "St. Mary's Medical Center", email: 'michael@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Michael+Chen&background=0ea5e9&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'away', availability: 'IN SURGERY', role: 'Consultant', rating: 5.0, consultations: 89, nextAppt: 'Tomorrow, 9:00 AM', phoneNumber: '+66800000002',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    },
-    {
-      id: 's3', title: 'Dr.', firstName: 'Elena', lastName: 'Rodriguez', specialty: 'Oncology', hospital: 'University Health Institute', email: 'elena@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Elena+Rodriguez&background=8b5cf6&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.8, consultations: 210, nextAppt: 'Today, 4:00 PM', phoneNumber: '+66800000003',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    },
-    {
-      id: 's4', title: 'Dr.', firstName: 'David', lastName: 'Kim', specialty: 'Pediatrics', hospital: 'City General Hospital', email: 'david@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=David+Kim&background=f43f5e&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'dnd', availability: 'BUSY', role: 'Specialist', rating: 4.7, consultations: 156, nextAppt: 'Tomorrow, 8:30 AM', phoneNumber: '+66800000004',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    },
-    {
-      id: 's5', title: 'Dr.', firstName: 'Maya', lastName: 'Patel', specialty: 'Radiology', hospital: 'North Regional Clinic', email: 'maya@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Maya+Patel&background=10b981&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Consultant', rating: 4.9, consultations: 340, nextAppt: 'Today, 3:15 PM', phoneNumber: '+66800000005',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    },
-    {
-      id: 's6', title: 'Dr.', firstName: 'Robert', lastName: 'Wilson', specialty: 'Cardiology', hospital: "St. Mary's Medical Center", email: 'robert@example.com', avatarUrl: 'https://ui-avatars.com/api/?name=Robert+Wilson&background=64748b&color=fff', isAcceptingCases: true, isAcceptingNotifications: true, status: 'online', availability: 'AVAILABLE', role: 'Specialist', rating: 4.6, consultations: 95, nextAppt: 'Today, 5:00 PM', phoneNumber: '+66800000006',
-      notifPrefs: { newRequest: true, requestApproved: true, newMessage: true, caseUpdate: true, weeklyReport: true, systemAlert: true }
-    }
-  ]);
+    setUserProfile(nextProfile);
+    setRequests(nextRequests);
+    setActiveCases(nextActiveCases);
+    setArchiveCases(nextArchiveCases);
+    setNotifications(nextNotifications);
+    setActivities(nextActivities);
+    setSpecialists(nextSpecialists);
+    setSelectedCase(nextSelectedCase ? { ...nextSelectedCase, hospital: normalizeHospitalName(nextSelectedCase.hospital) || nextSelectedCase.hospital } : null);
+    persistState(nextRequests, nextActiveCases, nextArchiveCases, nextNotifications, nextActivities, nextSpecialists, nextSelectedCase ? { ...nextSelectedCase, hospital: normalizeHospitalName(nextSelectedCase.hospital) || nextSelectedCase.hospital } : null);
+  }, [persistState]);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToast({ id, message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void refreshFromStorage();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [refreshFromStorage]);
 
-  const addNotification = (title: string, message: string, type: 'request' | 'message' | 'alert') => {
-    const newNotif: Notification = {
-      id: Math.random().toString(36).substr(2, 9),
+  const addActivity = useCallback((title: string, desc: string, icon: ActivityLogItem['icon'], details?: string | null) => {
+    const nextItem: ActivityLogItem = {
+      id: createItemId('act'),
       title,
-      message,
+      desc,
       time: 'Just now',
-      read: false,
-      type
+      details: details || null,
+      icon,
+      timestamp: Date.now(),
     };
-    setNotifications(prev => [newNotif, ...prev]);
-  };
+    setActivities((prev) => {
+      const next = [nextItem, ...prev].slice(0, 50);
+      safeWrite(STORAGE_KEYS.activities, next);
+      return next;
+    });
+  }, []);
 
-  const approveRequest = (id: string) => {
-    const request = requests.find(r => r.id === id);
-    if (request) {
-      setRequests(prev => prev.filter(r => r.id !== id));
-      setActiveCases(prev => [...prev, { ...request, status: 'Active' }]);
-      addNotification('Request Approved', `Case for ${request.patientName} is now active.`, 'alert');
-      showToast(`✓ Request for ${request.patientName} approved`);
-    }
-  };
+  const showToast = useCallback((message: string, type: Toast['type'] = 'info') => {
+    const nextToast = { id: createItemId('toast'), message, type };
+    setToast(nextToast);
+    window.setTimeout(() => {
+      setToast((current) => (current?.id === nextToast.id ? null : current));
+    }, 2500);
+  }, []);
 
-  const declineRequest = (id: string) => {
-    const request = requests.find(r => r.id === id);
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Declined' } : r));
-    if (request) showToast(`Request for ${request.patientName} declined`, 'error');
-  };
+  const updateSelectedCase = useCallback((nextSelected: Case | null) => {
+    setSelectedCase(nextSelected);
+    safeWrite(STORAGE_KEYS.selectedCase, nextSelected);
+  }, []);
 
-  const closeCase = (id: string, outcome: 'Discharge' | 'Referred' | 'Dead' = 'Discharge') => {
-    const caseToClose = activeCases.find(c => c.id === id);
-    if (caseToClose) {
-      const closedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const closedTs = Date.now();
-      
-      setActiveCases(prev => prev.filter(c => c.id !== id));
-      setArchiveCases(prev => [...prev, { 
-        ...caseToClose, 
-        status: outcome, 
-        closeDate: closedAt,
-        closedTimestamp: closedTs
-      }]);
-      addNotification('Case Closed', `Case for ${caseToClose.patientName} has been archived.`, 'alert');
-      showToast(`✓ Case for ${caseToClose.patientName} moved to Archive as ${outcome}`);
-    }
-  };
+  const selectCase = useCallback((id: string) => {
+    const found = [...requests, ...activeCases, ...archiveCases].find((item) => item.id === id) || null;
+    updateSelectedCase(found);
+  }, [activeCases, archiveCases, requests, updateSelectedCase]);
 
-  const reactivateCase = (id: string) => {
-    const caseToReactivate = archiveCases.find(c => c.id === id);
-    if (caseToReactivate) {
-      setArchiveCases(prev => prev.filter(c => c.id !== id));
-      setActiveCases(prev => [...prev, { 
-        ...caseToReactivate, 
-        status: 'Active',
-        lastAction: 'Case Reactivated',
-        lastActiveTime: 'Just now'
-      }]);
-      showToast(`✓ Case for ${caseToReactivate.patientName} reactivated`);
-    }
-  };
+  const clearSelectedCase = useCallback(() => {
+    updateSelectedCase(null);
+  }, [updateSelectedCase]);
 
-  const addRequest = (data: Omit<Case, 'id' | 'status' | 'date'>): string => {
-    // @ts-ignore
-    const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
-    const telegramUser = tg?.initDataUnsafe?.user;
-    const currentUserId = telegramUser ? `user_${telegramUser.id}` : 'guest_user';
-    
-    const id = nextCaseId.toString();
+  const approveRequest = useCallback(async (id: string) => {
+    const found = requests.find((item) => item.id === id);
+    if (!found) return;
+
+    const approvedCase: Case = {
+      ...found,
+      status: 'Active',
+      lastAction: 'Approved',
+      lastActiveTime: createNow(),
+    };
+
+    setRequests((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      safeWrite(STORAGE_KEYS.requests, next);
+      return next;
+    });
+    setActiveCases((prev) => {
+      const next = [approvedCase, ...prev];
+      safeWrite(STORAGE_KEYS.activeCases, next);
+      return next;
+    });
+    setNotifications((prev) => {
+      const next = [{ id: createItemId('notif'), title: 'Request approved', message: `${found.patientName} was approved.`, time: 'Just now', read: false, type: 'request' }, ...prev];
+      safeWrite(STORAGE_KEYS.notifications, next);
+      return next;
+    });
+    addActivity('Request approved', `${found.patientName} approved`, 'update');
+    showToast(`Approved ${found.patientName}`, 'success');
+  }, [addActivity, requests, showToast]);
+
+  const declineRequest = useCallback(async (id: string) => {
+    const found = requests.find((item) => item.id === id);
+    if (!found) return;
+
+    const declinedCase: Case = {
+      ...found,
+      status: 'Declined',
+      lastAction: 'Declined',
+      lastActiveTime: createNow(),
+    };
+
+    setRequests((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      safeWrite(STORAGE_KEYS.requests, next);
+      return next;
+    });
+    setArchiveCases((prev) => {
+      const next = [declinedCase, ...prev];
+      safeWrite(STORAGE_KEYS.archiveCases, next);
+      return next;
+    });
+    addActivity('Request declined', `${found.patientName} declined`, 'note');
+    showToast(`Declined ${found.patientName}`, 'info');
+  }, [addActivity, requests, showToast]);
+
+  const closeCase = useCallback(async (id: string, outcome: 'Discharge' | 'Referred' | 'Dead' = 'Discharge') => {
+    const found = activeCases.find((item) => item.id === id);
+    if (!found) return;
+
+    const archivedCase: Case = {
+      ...found,
+      status: outcome,
+      closeDate: createNow(),
+      closedTimestamp: Date.now(),
+      lastAction: `Closed: ${outcome}`,
+      lastActiveTime: createNow(),
+    };
+
+    setActiveCases((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      safeWrite(STORAGE_KEYS.activeCases, next);
+      return next;
+    });
+    setArchiveCases((prev) => {
+      const next = [archivedCase, ...prev];
+      safeWrite(STORAGE_KEYS.archiveCases, next);
+      return next;
+    });
+    addActivity('Case closed', `${found.patientName} closed`, 'system', outcome);
+    showToast(`Closed ${found.patientName}`, 'success');
+  }, [activeCases, addActivity, showToast]);
+
+  const reactivateCase = useCallback(async (id: string) => {
+    const found = archiveCases.find((item) => item.id === id);
+    if (!found) return;
+
+    const reopened: Case = {
+      ...found,
+      status: 'Active',
+      closeDate: null,
+      closedTimestamp: null,
+      lastAction: 'Reactivated',
+      lastActiveTime: createNow(),
+    };
+
+    setArchiveCases((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      safeWrite(STORAGE_KEYS.archiveCases, next);
+      return next;
+    });
+    setActiveCases((prev) => {
+      const next = [reopened, ...prev];
+      safeWrite(STORAGE_KEYS.activeCases, next);
+      return next;
+    });
+    addActivity('Case reactivated', `${found.patientName} reactivated`, 'update');
+    showToast(`Reactivated ${found.patientName}`, 'success');
+  }, [addActivity, archiveCases, showToast]);
+
+  const addRequest = useCallback(async (data: Omit<Case, 'id' | 'status' | 'date'>) => {
     const newCase: Case = {
       ...data,
-      id,
+      hospital: normalizeHospitalName(data.hospital) || data.hospital,
+      id: createCaseId(),
       status: 'Pending',
-      type: 'sent',
-      senderId: currentUserId,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      lastAction: 'Request Submitted',
-      lastActiveTime: 'Just now'
+      date: new Date().toISOString(),
+      lastAction: 'Created',
+      lastActiveTime: createNow(),
     };
-    setRequests(prev => [newCase, ...prev]);
-    setNextCaseId(prev => prev + 1);
-    addNotification('New Request Submitted', `Consultation request for ${data.patientName} submitted.`, 'request');
+    setRequests((prev) => {
+      const next = [newCase, ...prev];
+      safeWrite(STORAGE_KEYS.requests, next);
+      return next;
+    });
+    addActivity('Request created', `${newCase.patientName} request created`, 'note');
+    showToast(`Created ${newCase.patientName}`, 'success');
+    return newCase.id;
+  }, [addActivity, showToast]);
 
-    fetch('http://localhost:3001/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        caseId: id,
-        patientName: data.patientName,
-        hospital: data.hospital,
-        priority: data.priority,
-        specialty: data.specialty,
-        age: data.age,
-        gender: data.gender,
-        reason: data.reason,
-        type: 'newRequest',
-        senderId: currentUserId
-      })
-    }).catch(err => console.warn('[Telegram Notification Warning]', err));
-
-    return id;
-  };
-
-  const selectCase = (id: string) => {
-    const found = activeCases.find(c => c.id === id) || requests.find(r => r.id === id);
-    if (found) setSelectedCase(found);
-  };
-
-  const clearSelectedCase = () => setSelectedCase(null);
-
-  const markNotificationAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  };
-
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
-
-  const updateUserProfile = (profile: Partial<UserProfile>) => {
-    setUserProfile(prev => ({ ...prev, ...profile }));
-  };
-
-  // --- Telegram Web App Integration ---
-  useEffect(() => {
-    // @ts-ignore - Telegram is injected globally in index.html
-    const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      const telegramUser = tg.initDataUnsafe?.user;
-      if (telegramUser) {
-        console.log('[Telegram Auth] Secure Web App Payload received:', telegramUser);
-        
-        // Update local profile
-        setUserProfile(prev => ({
-          ...prev,
-          firstName: telegramUser.first_name,
-          lastName: telegramUser.last_name || '',
-          specialty: 'Verified via Telegram',
-        }));
-
-        // Register Chat ID with Backend (Dynamic Targeting)
-        // We use the first name as a rudimentary specialistId for now, or you can use telegramUser.id
-        fetch('http://localhost:3001/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            specialistId: `user_${telegramUser.id}`,
-            chatId: telegramUser.id.toString(),
-            isAvailable: userProfile.isAcceptingCases && userProfile.isAcceptingNotifications,
-            preferences: Object.keys(userProfile.notifPrefs).filter(k => userProfile.notifPrefs[k as keyof typeof userProfile.notifPrefs])
-          })
-        }).catch(err => console.warn('[Telegram Registration Warning]', err));
-      }
-    }
+  const markNotificationAsRead = useCallback(async (id: string) => {
+    setNotifications((prev) => {
+      const next = prev.map((item) => item.id === id ? { ...item, read: true } : item);
+      safeWrite(STORAGE_KEYS.notifications, next);
+      return next;
+    });
   }, []);
 
-  // Sync Availability with Backend
-  useEffect(() => {
-    // @ts-ignore
-    const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
-    const telegramUser = tg?.initDataUnsafe?.user;
-    if (telegramUser) {
-      fetch('http://localhost:3001/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          specialistId: `user_${telegramUser.id}`,
-          chatId: telegramUser.id.toString(),
-          isAvailable: userProfile.isAcceptingCases && userProfile.isAcceptingNotifications,
-          preferences: Object.keys(userProfile.notifPrefs).filter(k => userProfile.notifPrefs[k as keyof typeof userProfile.notifPrefs])
-        })
-      }).catch(err => console.warn('[Telegram Sync Warning]', err));
-    }
-  }, [userProfile.isAcceptingCases, userProfile.isAcceptingNotifications, userProfile.notifPrefs]);
-  // ------------------------------------
+  const clearNotifications = useCallback(async () => {
+    setNotifications([]);
+    safeWrite(STORAGE_KEYS.notifications, []);
+  }, []);
+
+  const updateUserProfile = useCallback(async (profile: Partial<UserProfile>) => {
+    setUserProfile((prev) => {
+      const next = {
+        ...prev,
+        ...profile,
+        hospital: normalizeHospitalName(profile.hospital ?? prev.hospital),
+      };
+      authService.saveUserProfile(next);
+      return next;
+    });
+    showToast('Profile updated', 'success');
+  }, [showToast]);
+
+  const refreshActivities = useCallback(async () => {
+    setActivities((prev) => {
+      const next = [...prev];
+      safeWrite(STORAGE_KEYS.activities, next);
+      return next;
+    });
+  }, []);
+
+  const value = useMemo<AppContextType>(() => ({
+    requests,
+    activeCases,
+    archiveCases,
+    notifications,
+    selectedCase,
+    toast,
+    userProfile,
+    specialists,
+    activities,
+    approveRequest,
+    declineRequest,
+    closeCase,
+    reactivateCase,
+    addRequest,
+    selectCase,
+    clearSelectedCase,
+    markNotificationAsRead,
+    clearNotifications,
+    showToast,
+    updateUserProfile,
+    refreshActivities,
+    fetchData: refreshFromStorage,
+  }), [
+    addRequest,
+    activeCases,
+    activities,
+    approveRequest,
+    archiveCases,
+    clearNotifications,
+    clearSelectedCase,
+    closeCase,
+    declineRequest,
+    markNotificationAsRead,
+    reactivateCase,
+    refreshFromStorage,
+    requests,
+    selectedCase,
+    specialists,
+    showToast,
+    toast,
+    updateUserProfile,
+    userProfile,
+    notifications,
+    refreshActivities,
+    selectCase,
+  ]);
 
   return (
-    <AppContext.Provider value={{
-      requests,
-      activeCases,
-      archiveCases,
-      notifications,
-      selectedCase,
-      toast,
-      approveRequest,
-      declineRequest,
-      closeCase,
-      reactivateCase,
-      addRequest,
-      selectCase,
-      clearSelectedCase,
-      markNotificationAsRead,
-      clearNotifications,
-      showToast,
-      userProfile,
-      specialists,
-      activities,
-      updateUserProfile,
-      refreshActivities: () => {
-        setActivities(prev => {
-          const shuffled = [...prev].sort(() => Math.random() - 0.5);
-          if (shuffled.length > 0) {
-            shuffled[0] = { ...shuffled[0], time: 'JUST NOW', timestamp: Date.now() };
-          }
-          return shuffled;
-        });
-      }
-    }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );
-};
+}
 
-export const useApp = () => {
+export function useApp() {
   const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
-};
+}

@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import { useApp } from '@/context/AppContext';
-import './style.css';
+import styles from './style.module.css';
 
 function Dashboard() {
   const router = useRouter();
@@ -20,6 +20,8 @@ function Dashboard() {
   const { activeCases, requests, specialists, activities, refreshActivities, selectCase } = useApp();
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const cx = (...names: Array<string | false | null | undefined>) =>
+    names.filter(Boolean).map((name) => styles[name as string]).join(' ');
 
   const handleRefreshFeed = () => {
     setIsRefreshing(true);
@@ -31,78 +33,82 @@ function Dashboard() {
     }, 800);
   };
 
+  const openCaseDetail = (caseId: string) => {
+    selectCase(caseId);
+    navigate('/patient-detail');
+  };
+
   const pendingRequestsCount = requests.filter(r => r.status === 'Pending').length;
-  const onlineSpecialists = specialists.filter(s => s.status === 'online' && s.role === 'Specialist').length;
-  const onlineConsultants = specialists.filter(s => s.status === 'online' && s.role === 'Consultant').length;
-  const totalOnline = onlineSpecialists + onlineConsultants;
+  const onlineSpecialists = specialists.filter(s => s.status === 'online' && s.isAcceptingCases).length;
+  const totalOnline = onlineSpecialists;
 
   return (
     <Layout>
-      <div className="dashboard-content-wrapper">
-        <div className="dashboard-header">
-          <h1 className="page-title">Dashboard Overview</h1>
-          <p className="page-subtitle">Welcome back, Dr. Smith. Here is what's happening today.</p>
+      <div className={styles['dashboard-content-wrapper']}>
+        <div className={styles['dashboard-header']}>
+          <h1 className={styles['page-title']}>Dashboard Overview</h1>
+          <p className={styles['page-subtitle']}>Welcome back. Here is what's happening today.</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="stats-grid fade-in-float" style={{ animationDelay: '0.1s' }}>
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-title">ACTIVE CONSULTATION CASES</span>
-              <div className="stat-icon blue">
+        <div className={cx('stats-grid', 'fade-in-float', 'delay-short')}>
+          <div className={styles['stat-card']}>
+            <div className={styles['stat-card-header']}>
+              <span className={styles['stat-title']}>ACTIVE CONSULTATION CASES</span>
+              <div className={cx('stat-icon', 'blue')}>
                 <Activity size={18} />
               </div>
             </div>
-            <div className="stat-body">
-              <div className="stat-value">
-                {activeCases.length.toString().padStart(2, '0')} <span className="stat-trend positive">LIVE</span>
+            <div className={styles['stat-body']}>
+              <div className={styles['stat-value']}>
+                {activeCases.length.toString().padStart(2, '0')} <span className={cx('stat-trend', 'positive')}>LIVE</span>
               </div>
-              <div className="stat-desc">Currently being reviewed</div>
+              <div className={styles['stat-desc']}>Currently being reviewed</div>
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-title">PENDING REQUESTS</span>
-              <div className="stat-icon yellow">
+          <div className={styles['stat-card']}>
+            <div className={styles['stat-card-header']}>
+              <span className={styles['stat-title']}>PENDING REQUESTS</span>
+              <div className={cx('stat-icon', 'yellow')}>
                 <History size={18} />
               </div>
             </div>
-            <div className="stat-body">
-              <div className="stat-value">
-                {pendingRequestsCount.toString().padStart(2, '0')} <span className="stat-trend negative">-5%</span>
+            <div className={styles['stat-body']}>
+              <div className={styles['stat-value']}>
+                {pendingRequestsCount.toString().padStart(2, '0')} <span className={cx('stat-trend', 'negative')}>-5%</span>
               </div>
-              <div className="stat-desc">Requires immediate attention</div>
+              <div className={styles['stat-desc']}>Requires immediate attention</div>
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-title">ONLINE SPECIALIST/CONSULTANT</span>
-              <div className="stat-icon green">
+          <div className={styles['stat-card']}>
+            <div className={styles['stat-card-header']}>
+              <span className={styles['stat-title']}>AVAILABLE SPECIALISTS</span>
+              <div className={cx('stat-icon', 'green')}>
                 <UserCheck size={18} />
               </div>
             </div>
-            <div className="stat-body">
-              <div className="stat-value">
-                {totalOnline.toString().padStart(2, '0')} <span className="stat-trend positive">LIVE</span>
+            <div className={styles['stat-body']}>
+              <div className={styles['stat-value']}>
+                {totalOnline.toString().padStart(2, '0')} <span className={cx('stat-trend', 'positive')}>LIVE</span>
               </div>
-              <div className="stat-desc">{onlineSpecialists} Specialists, {onlineConsultants} Consultants</div>
+              <div className={styles['stat-desc']}>{onlineSpecialists} specialists accepting cases now</div>
             </div>
           </div>
 
         </div>
 
         {/* Main Grid Content */}
-        <div className="content-grid fade-in-float" style={{ animationDelay: '0.3s' }}>
+        <div className={cx('content-grid', 'fade-in-float', 'delay-medium')}>
           {/* Active Consultations Table */}
-          <div className="card consultations-card">
-            <div className="card-header">
-              <h2 className="card-title">Active Consultations</h2>
-              <button className="view-all-btn" onClick={() => navigate('/active-cases')}>View All</button>
+          <div className={cx('card', 'consultations-card')}>
+            <div className={styles['card-header']}>
+              <h2 className={styles['card-title']}>Active Consultations</h2>
+              <button className={styles['view-all-btn']} onClick={() => navigate('/active-cases')}>View All</button>
             </div>
-            <div className="table-responsive">
-              <table className="data-table">
+            <div className={styles['table-responsive']}>
+              <table className={styles['data-table']}>
                 <thead>
                   <tr>
                     <th>PATIENT NAME</th>
@@ -112,30 +118,71 @@ function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activeCases.map((caseItem) => (
-                    <tr key={caseItem.id} onClick={() => { selectCase(caseItem.id); navigate('/patient-detail'); }} style={{ cursor: 'pointer' }}>
+                  {activeCases.slice(0, 5).map((caseItem) => (
+                    <tr key={caseItem.id} className={styles['row-clickable']} onClick={() => { selectCase(caseItem.id); navigate('/patient-detail'); }}>
                       <td>
-                        <div className="patient-name">{caseItem.patientName}</div>
-                        <div className="patient-meta">ID: {caseItem.id}</div>
+                        <div
+                          className={styles['patient-name']}
+                          role="button"
+                          tabIndex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCaseDetail(caseItem.id);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openCaseDetail(caseItem.id);
+                            }
+                          }}
+                        >
+                          {caseItem.patientName}
+                        </div>
+                        <div className={styles['patient-meta']}>ID: {caseItem.id}</div>
                       </td>
-                      <td>{caseItem.hospital}</td>
                       <td>
-                        <span className={`priority-badge ${caseItem.priority.toLowerCase()}`}>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCaseDetail(caseItem.id);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openCaseDetail(caseItem.id);
+                            }
+                          }}
+                        >
+                          {caseItem.hospital}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={cx('priority-badge', caseItem.priority.toLowerCase())}>
                           {caseItem.priority}
                         </span>
                       </td>
                       <td>
-                        <div className="last-action-cell">
-                          <span className="action-text">{caseItem.lastAction || 'Wait for review'}</span>
-                          <span className="action-time">{caseItem.lastActiveTime || 'Just now'}</span>
+                        <div className={styles['last-action-cell']}>
+                          <span className={styles['action-text']}>{caseItem.lastAction || 'Wait for review'}</span>
+                          <span className={styles['action-time']}>{caseItem.lastActiveTime || 'Just now'}</span>
                         </div>
                       </td>
                     </tr>
                   ))}
                   {activeCases.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                        No active consultations found.
+                      <td colSpan={4} className={styles['empty-table-cell']}>
+                        <div className={styles['empty-state-content']}>
+                          <History size={48} strokeWidth={1} color="rgba(67, 24, 255, 0.2)" />
+                          <p>No active consultations found.</p>
+                          <span className={styles['empty-desc']}>New requests will appear here once approved.</span>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -145,43 +192,43 @@ function Dashboard() {
           </div>
 
           {/* Activity Feed and Status */}
-          <div className="right-panel">
-            <div className="card activity-card">
-              <div className="card-header">
-                <h2 className="card-title">Activity Feed</h2>
-                <div className="menu-container">
-                  <button className="icon-btn" onClick={() => setShowActivityMenu(!showActivityMenu)}>
+          <div className={styles['right-panel']}>
+            <div className={cx('card', 'activity-card')}>
+              <div className={styles['card-header']}>
+                <h2 className={styles['card-title']}>Activity Feed</h2>
+                <div className={styles['menu-container']}>
+                  <button className={styles['icon-btn']} onClick={() => setShowActivityMenu(!showActivityMenu)}>
                     <MoreVertical size={20} />
                   </button>
                   {showActivityMenu && (
-                    <div className="dropdown-menu">
+                    <div className={styles['dropdown-menu']}>
                       <button 
-                        className="menu-item" 
+                        className={cx('menu-item', isRefreshing && 'spinning')}
                         onClick={handleRefreshFeed}
                         disabled={isRefreshing}
                       >
-                        <RefreshCcw size={14} className={isRefreshing ? 'spinning' : ''} /> 
+                        <RefreshCcw size={14} />
                         {isRefreshing ? 'Refreshing...' : 'Refresh Feed'}
                       </button>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="activity-list">
+              <div className={styles['activity-list']}>
                 {activities.slice(0, 2).map((item) => (
-                  <div key={item.id} className="activity-item">
-                    <div className={`activity-icon bg-${item.icon === 'alert' ? 'red' : item.icon === 'note' ? 'blue' : 'gray'}-light text-${item.icon === 'alert' ? 'red' : item.icon === 'note' ? 'blue' : 'gray'}`}>
+                  <div key={item.id} className={styles['activity-item']}>
+                    <div className={cx('activity-icon', item.icon === 'alert' ? 'bg-red-light' : 'bg-blue-light')}>
                       {item.icon === 'alert' ? <AlertCircle size={16} /> : <ClipboardList size={16} />}
                     </div>
-                    <div className="activity-content">
-                      <div className="activity-title">{item.title}</div>
-                      <div className="activity-desc">{item.desc}</div>
-                      <div className="activity-time">{item.time}</div>
+                    <div className={styles['activity-content']}>
+                      <div className={styles['activity-title']}>{item.title}</div>
+                      <div className={styles['activity-desc']}>{item.desc}</div>
+                      <div className={styles['activity-time']}>{item.time}</div>
                     </div>
                   </div>
                 ))}
               </div>
-              <button className="view-full-history" onClick={() => navigate('/activity-history')}>View Full History</button>
+              <button className={styles['view-full-history']} onClick={() => navigate('/activity-history')}>View Full History</button>
             </div>
 
           </div>
