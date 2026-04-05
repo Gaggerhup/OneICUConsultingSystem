@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 function Login() {
   const handleProviderLogin = () => {
-    authService.redirectToLogin();
+    authService.redirectToLogin(authService.getCallbackUrl());
   };
 
   return (

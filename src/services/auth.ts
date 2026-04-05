@@ -13,6 +13,15 @@ const REDIRECT_URI = process.env.NEXT_PUBLIC_HEALTH_REDIRECT_URI || '';
 const HEALTH_CLIENT_SECRET = process.env.NEXT_PUBLIC_HEALTH_CLIENT_SECRET || '';
 const PROVIDER_CLIENT_ID = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_ID || '';
 const PROVIDER_CLIENT_SECRET = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_SECRET || '';
+const CALLBACK_PATH = '/api/auth/healthid';
+
+const resolveRedirectUri = (override?: string) => {
+  if (override) return override;
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${CALLBACK_PATH}`;
+  }
+  return REDIRECT_URI;
+};
 
 const normalizeHospitalName = (value: string | null | undefined) => {
   switch ((value || '').trim()) {
@@ -36,8 +45,14 @@ export const authService = {
   /**
    * Redirect users to the moph.id.th OAuth portal
    */
-  redirectToLogin: () => {
-    const url = `${HEALTH_ID_URL}/oauth/redirect?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+  redirectToLogin: (redirectUri?: string) => {
+    const resolvedRedirectUri = resolveRedirectUri(redirectUri);
+    const url = new URL('/oauth/redirect', HEALTH_ID_URL);
+    url.search = new URLSearchParams({
+      client_id: CLIENT_ID,
+      redirect_uri: resolvedRedirectUri,
+      response_type: 'code',
+    }).toString();
     window.location.href = url;
   },
 
@@ -45,13 +60,14 @@ export const authService = {
    * Exchange authorization code for Health ID access token
    */
   exchangeCode: async (code: string) => {
+    const resolvedRedirectUri = resolveRedirectUri();
     const response = await fetch(`${HEALTH_ID_URL}/api/v1/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: resolvedRedirectUri,
         client_id: CLIENT_ID,
         client_secret: HEALTH_CLIENT_SECRET
       }),
@@ -282,5 +298,11 @@ export const authService = {
     // Clear the auth cookie
     document.cookie = "auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     window.location.href = '/login';
+  },
+
+  /**
+   * Resolve the callback URL used by the current host.
+   */
+  getCallbackUrl: () => resolveRedirectUri(),
   }
 };

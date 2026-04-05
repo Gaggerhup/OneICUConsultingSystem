@@ -9,8 +9,14 @@ const HEALTH_CLIENT_SECRET = process.env.NEXT_PUBLIC_HEALTH_CLIENT_SECRET || '';
 const PROVIDER_CLIENT_ID = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_ID || '';
 const PROVIDER_CLIENT_SECRET = process.env.NEXT_PUBLIC_PROVIDER_CLIENT_SECRET || '';
 
-export async function authenticateWithCode(code: string) {
+export async function authenticateWithCode(code: string, redirectUri?: string) {
   try {
+    const resolvedRedirectUri = redirectUri || REDIRECT_URI;
+
+    if (!resolvedRedirectUri) {
+      throw new Error('Missing redirect URI for Provider ID authentication');
+    }
+
     // 1. Exchange authorization code for Health ID access token
     const tokenResponse = await fetch(`${HEALTH_ID_URL}/api/v1/token`, {
       method: 'POST',
@@ -18,7 +24,7 @@ export async function authenticateWithCode(code: string) {
       body: JSON.stringify({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: resolvedRedirectUri,
         client_id: CLIENT_ID,
         client_secret: HEALTH_CLIENT_SECRET
       }),

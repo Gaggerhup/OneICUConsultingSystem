@@ -24,7 +24,8 @@ function AuthCallbackContent() {
 
       try {
         setStatus('Exchanging token and verifying identity securely...');
-        const result = await authenticateWithCode(code);
+        const callbackUrl = authService.getCallbackUrl();
+        const result = await authenticateWithCode(code, callbackUrl);
 
         if (!result.success || !result.profile) {
           throw new Error(result.error || 'Identity verification failed');
