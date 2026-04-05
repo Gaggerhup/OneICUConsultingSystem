@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 function Login() {
   const handleProviderLogin = () => {
-    window.location.href = '/api/auth/provider-login';
+    authService.redirectToLogin(authService.getCallbackUrl());
   };
 
   return (
