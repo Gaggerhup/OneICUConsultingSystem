@@ -6,7 +6,7 @@ module.exports = {
       script: '/usr/bin/bash',
       args: [
         '-lc',
-        'cd /root/OneICUConsultingSystem && PORT=8000 node ./node_modules/next/dist/bin/next start -p 8000 -H 0.0.0.0',
+        'cd /root/OneICUConsultingSystem && PORT=8000 node ./node_modules/next/dist/bin/next dev -p 8000 -H 0.0.0.0',
       ],
       exec_mode: 'fork',
       autorestart: true,
