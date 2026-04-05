@@ -1,7 +1,7 @@
 'use server';
 
-const HEALTH_ID_URL = 'https://moph.id.th';
-const PROVIDER_ID_URL = 'https://provider.id.th';
+const HEALTH_ID_URL = process.env.NEXT_PUBLIC_HEALTH_BASE_URL || 'https://uat-moph.id.th';
+const PROVIDER_ID_URL = process.env.NEXT_PUBLIC_PROVIDER_BASE_URL || 'https://uat-provider.id.th';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_HEALTH_CLIENT_ID || '';
 const REDIRECT_URI = process.env.NEXT_PUBLIC_HEALTH_REDIRECT_URI || '';

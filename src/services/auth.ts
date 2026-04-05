@@ -1,11 +1,11 @@
 /**
  * Provider ID Authentication Service
  * 
- * This service handles the OAuth flow with moph.id.th and provider.id.th.
+ * This service handles the OAuth flow with Health ID and Provider ID.
  */
 
-const HEALTH_ID_URL = 'https://moph.id.th';
-const PROVIDER_ID_URL = 'https://provider.id.th';
+const HEALTH_ID_URL = process.env.NEXT_PUBLIC_HEALTH_BASE_URL || 'https://uat-moph.id.th';
+const PROVIDER_ID_URL = process.env.NEXT_PUBLIC_PROVIDER_BASE_URL || 'https://uat-provider.id.th';
 
 // Constants for OAuth configuration
 const CLIENT_ID = process.env.NEXT_PUBLIC_HEALTH_CLIENT_ID || '';
@@ -43,7 +43,7 @@ const normalizeHospitalName = (value: string | null | undefined) => {
 
 export const authService = {
   /**
-   * Redirect users to the moph.id.th OAuth portal
+   * Redirect users to the Health ID OAuth portal
    */
   redirectToLogin: (redirectUri?: string) => {
     const resolvedRedirectUri = resolveRedirectUri(redirectUri);
@@ -93,7 +93,7 @@ export const authService = {
   },
 
   /**
-   * Fetch user profile from provider.id.th
+   * Fetch user profile from Provider ID
    */
   getProfile: async (providerToken: string) => {
     const response = await fetch(`${PROVIDER_ID_URL}/api/v1/services/profile?position_type=1`, {

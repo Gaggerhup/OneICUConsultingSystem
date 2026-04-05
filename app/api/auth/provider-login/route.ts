@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const HEALTH_ID_URL = 'https://moph.id.th';
+const HEALTH_ID_URL = process.env.NEXT_PUBLIC_HEALTH_BASE_URL || 'https://uat-moph.id.th';
 const CALLBACK_PATH = '/api/auth/healthid';
 
 export function GET(request: Request) {
