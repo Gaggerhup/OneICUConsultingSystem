@@ -27,6 +27,7 @@ dist-ssr
 *.sw?
 
 .env
+.env.production
 .env.*.local
 .env.example copy
 telegramnoti.env.rtf

@@ -5,6 +5,6 @@
 export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
 
 echo "🔷 Node.js version: $(node --version)"
-echo "🚀 Starting Antigravity on http://localhost:3005"
+echo "🚀 Starting Antigravity on http://localhost:3000"
 
 npm run dev
