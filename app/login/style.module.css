@@ -1,0 +1,324 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 50%, #f8faff 0%, #f1f4f9 100%);
+  background-attachment: fixed;
+}
+
+/* Header */
+.app-container .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2.5rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  margin: 1.25rem 1.25rem 0 1.25rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-float);
+}
+
+.app-container .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.app-container .logo-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* Main Content */
+.app-container .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.app-container .login-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-radius: 30px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  animation: floatIn 1s ease-out;
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-container .login-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-5px);
+}
+
+.app-container .card-header-img {
+  width: 100%;
+  height: 160px;
+  background: linear-gradient(135deg, #4318FF 0%, #7B5CFF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-container .card-header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+.app-container .card-header-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.app-container .card-body {
+  padding: 3rem 40px;
+  text-align: center;
+}
+
+.app-container .title {
+  font-size: 2rem;
+  font-weight: 850;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+}
+
+.app-container .subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0 0 2.5rem 0;
+  font-weight: 500;
+}
+
+.app-container .login-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.app-container .provider-id-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 1.15rem;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  transition: all 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.app-container .provider-id-btn:hover {
+  border-color: var(--primary);
+  box-shadow: 0 10px 20px rgba(67, 24, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.app-container .dev-access-btn {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  background: none;
+  border: 1px dashed #e2e8f0;
+  padding: 0.5rem;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container .dev-access-btn:hover {
+  border-color: #cbd5e1;
+  color: #64748b;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.app-container .provider-logo-img {
+  width: auto;
+  height: 28px;
+  object-fit: contain;
+}
+
+.app-container .page-footer {
+  text-align: center;
+  padding: 2.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+
+.app-container .external-browser-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed #cbd5e1;
+  padding: 0.85rem 1.15rem;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.app-container .external-browser-btn:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.app-container .ext-icon-wrap {
+  width: 36px;
+  height: 36px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-container .ext-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container .ext-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.app-container .ext-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.app-container .ext-chevron {
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .app-container .header {
+    margin: 0.875rem 0.875rem 0;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .app-container .main-content {
+    padding: 1.25rem;
+  }
+
+  .app-container .card-body {
+    padding: 2rem 1.5rem;
+  }
+
+  .app-container .title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-container .header {
+    border-radius: 16px;
+    padding: 0.875rem 1rem;
+  }
+
+  .app-container .logo-container {
+    font-size: 1rem;
+  }
+
+  .app-container .logo-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-container .main-content {
+    padding: 1rem;
+    justify-content: flex-start;
+  }
+
+  .app-container .login-card {
+    border-radius: 22px;
+  }
+
+  .app-container .card-header-img {
+    height: 128px;
+  }
+
+  .app-container .card-header-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .app-container .card-body {
+    padding: 1.5rem 1rem;
+  }
+
+  .app-container .title {
+    font-size: 1.5rem;
+  }
+
+  .app-container .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .app-container .provider-id-btn,
+  .app-container .external-browser-btn {
+    padding: 0.95rem;
+    border-radius: 14px;
+  }
+
+  .app-container .page-footer {
+    padding: 1.5rem 1rem 2rem;
+  }
+}
