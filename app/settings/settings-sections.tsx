@@ -1,0 +1,419 @@
+import { useRef, useState } from 'react';
+import {
+  User,
+  Bell,
+  ShieldCheck,
+  Save,
+  CheckCircle2,
+  Laptop,
+  Smartphone,
+  Globe,
+} from 'lucide-react';
+import { SPECIALTY_OPTIONS } from '@/constants/specialties';
+import { cx } from '@/lib/cx';
+import styles from './style.module.css';
+import {
+  ProfileActions,
+  ProfileEditableFields,
+  ProfileIdentityFields,
+  ProfilePhotoCard,
+  SettingsSidebarAvatar,
+} from './settings-profile-sections';
+
+type TFunction = (key: string) => string;
+
+export type SettingsTab = 'profile' | 'notifications' | 'security';
+
+export type SettingsUserProfile = {
+  title?: string | null;
+  firstName?: string;
+  lastName?: string;
+  specialty?: string | null;
+  hospital?: string | null;
+  email?: string;
+  avatarUrl?: string | null;
+  phoneNumber?: string | null;
+  isAcceptingCases: boolean;
+  isAcceptingNotifications: boolean;
+  license?: string | null;
+  summary?: string | null;
+  telegramChatId?: string | null;
+  notifPrefs: {
+    newRequest: boolean;
+    requestApproved: boolean;
+    newMessage: boolean;
+    caseUpdate: boolean;
+    weeklyReport: boolean;
+    systemAlert: boolean;
+  };
+};
+
+type ProfileTabProps = {
+  userProfile: SettingsUserProfile;
+  language: string;
+  t: TFunction;
+  onSaveProfile: (profile: Record<string, unknown>) => void;
+  onCancel: () => void;
+  onSaved: () => void;
+};
+
+type NotificationsTabProps = {
+  acceptingNotifications: boolean;
+  telegramChatId: string | null;
+  notifPrefs: SettingsUserProfile['notifPrefs'];
+  setAcceptingNotifications: React.Dispatch<React.SetStateAction<boolean>>;
+  setTelegramChatId: React.Dispatch<React.SetStateAction<string | null>>;
+  setNotifPrefs: React.Dispatch<React.SetStateAction<SettingsUserProfile['notifPrefs']>>;
+  onSave: () => void;
+  t: TFunction;
+};
+
+type SecuritySession = {
+  id: string;
+  device: string;
+  location: string;
+  time: string;
+  isCurrent: boolean;
+  type: 'laptop' | 'mobile';
+};
+
+type SecurityTabProps = {
+  language: string;
+  sessions: SecuritySession[];
+  revokeSession: (id: string) => void;
+  setShowDeactivateModal: React.Dispatch<React.SetStateAction<boolean>>;
+  t: TFunction;
+};
+
+type DeactivateModalProps = {
+  onCancel: () => void;
+  onConfirm: () => void;
+  t: TFunction;
+};
+
+const notificationToggleKeys: Array<{
+  key: keyof SettingsUserProfile['notifPrefs'];
+  label: string;
+  hint: string;
+}> = [
+  { key: 'newRequest', label: 'มีคำขอปรึกษาใหม่', hint: 'แจ้งเมื่อมีการส่งคำขอปรึกษาใหม่' },
+  { key: 'requestApproved', label: 'สถานะคำขอเปลี่ยน', hint: 'เมื่อคำขอของคุณได้รับการอนุมัติหรือปฏิเสธ' },
+  { key: 'newMessage', label: 'มีข้อความใหม่จากผู้เชี่ยวชาญ', hint: 'ข้อความแชตและความคิดเห็นในเคส' },
+  { key: 'caseUpdate', label: 'อัปเดตกิจกรรมของเคส', hint: 'อัปเดตสัญญาณชีพ แล็บ และบันทึกเคส' },
+];
+
+export function ProfileTab({ userProfile, language, t, onSaveProfile, onCancel, onSaved }: ProfileTabProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const defaultSummary = language === 'th'
+    ? 'ผู้เชี่ยวชาญด้านสุขภาพที่ได้รับการรับรอง มีประสบการณ์ทางคลินิกอย่างกว้างขวาง'
+    : 'Certified healthcare professional with extensive clinical experience';
+
+  const [acceptingPatients, setAcceptingPatients] = useState(() => userProfile.isAcceptingCases);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => userProfile.avatarUrl || null);
+  const [form, setForm] = useState(() => ({
+    title: userProfile.title || 'Dr.',
+    firstName: userProfile.firstName || '',
+    lastName: userProfile.lastName || '',
+    license: userProfile.license || '',
+    specialty: userProfile.specialty || '',
+    hospital: userProfile.hospital || '',
+    email: userProfile.email || '',
+    phoneNumber: userProfile.phoneNumber || '+66',
+    summary: userProfile.summary || defaultSummary,
+  }));
+
+  const userInitials = `${(userProfile.firstName || '').charAt(0)}${(userProfile.lastName || '').charAt(0)}`;
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setAvatarUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = () => {
+    onSaveProfile({
+      ...form,
+      title: userProfile.title,
+      firstName: userProfile.firstName,
+      lastName: userProfile.lastName,
+      license: userProfile.license || '',
+      specialty: form.specialty.trim() || null,
+      hospital: form.hospital.trim() || null,
+      email: form.email.trim(),
+      phoneNumber: form.phoneNumber.trim() || null,
+      avatarUrl,
+      isAcceptingCases: acceptingPatients,
+    });
+    onSaved();
+  };
+
+  return (
+    <div className={styles['settings-panel']}>
+      <div className={styles['settings-panel-header']}>
+        <h1>{t('settings.profileTitle')}</h1>
+      </div>
+
+      <ProfilePhotoCard
+        avatarUrl={avatarUrl}
+        userInitials={userInitials}
+        fileInputRef={fileInputRef}
+        handlePhotoUpload={handlePhotoUpload}
+        setAvatarUrl={setAvatarUrl}
+        t={t}
+      />
+
+      <div className={styles['settings-card']}>
+        <ProfileIdentityFields form={form} t={t} />
+        <ProfileEditableFields form={form} setForm={setForm} t={t} />
+
+        <div className={styles['toggle-row']}>
+          <div>
+            <p className={styles['toggle-label']}>{t('settings.acceptNewCases')}</p>
+            <p className={styles['toggle-hint']}>{t('settings.statusAcceptingCases')}</p>
+          </div>
+          <button className={acceptingPatients ? `${styles['toggle-switch']} ${styles['on']}` : styles['toggle-switch']} onClick={() => setAcceptingPatients(!acceptingPatients)} role="switch" aria-checked={acceptingPatients}>
+            <span className={styles['toggle-knob']} />
+          </button>
+        </div>
+      </div>
+
+      <ProfileActions onCancel={onCancel} onSave={handleSave} t={t} />
+    </div>
+  );
+}
+
+export function NotificationsTab({
+  acceptingNotifications,
+  telegramChatId,
+  notifPrefs,
+  setAcceptingNotifications,
+  setTelegramChatId,
+  setNotifPrefs,
+  onSave,
+  t,
+}: NotificationsTabProps) {
+  return (
+    <div className={styles['settings-panel']}>
+      <div className={styles['settings-panel-header']}>
+        <h1>{t('settings.notificationsTitle')}</h1>
+        <p>{t('settings.notificationsSubtitle')}</p>
+      </div>
+      <div className={styles['settings-card']}>
+        <div className={cx(styles, 'toggle-row', 'spaced-toggle-row')}>
+          <div>
+            <p className={styles['toggle-label']}>{t('settings.notificationsTab')}</p>
+            <p className={styles['toggle-hint']}>{t('settings.statusAcceptingCases')}</p>
+          </div>
+          <button className={cx(styles, 'toggle-switch', acceptingNotifications && 'on')} onClick={() => setAcceptingNotifications(!acceptingNotifications)} role="switch" aria-checked={acceptingNotifications}>
+            <span className={styles['toggle-knob']} />
+          </button>
+        </div>
+        
+        <p className={styles['notif-section-title']}>Telegram (Personal Chat)</p>
+        <div className={cx(styles, 'toggle-row', 'bordered')}>
+          <div style={{ flex: 1, paddingRight: '1rem' }}>
+            <p className={styles['toggle-label']}>Telegram Chat ID</p>
+            <p className={styles['toggle-hint']}>
+              To receive notifications in your personal Telegram account, start a chat with our bot (<code>@OneICUTestBot</code> or the designated bot) and type <code>/start</code>. It will reply with your Chat ID. Enter it here.
+            </p>
+            <input
+              type="text"
+              value={telegramChatId || ''}
+              onChange={(e) => setTelegramChatId(e.target.value.trim() || null)}
+              placeholder="e.g. 123456789"
+              style={{
+                marginTop: '8px',
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+        </div>
+
+        <p className={styles['notif-section-title']}>{t('settings.notificationCases')}</p>
+        {notificationToggleKeys.map(({ key, label, hint }) => (
+          <div key={key} className={cx(styles, 'toggle-row', 'bordered')}>
+            <div>
+              <p className={styles['toggle-label']}>{label}</p>
+              <p className={styles['toggle-hint']}>{hint}</p>
+            </div>
+            <button className={cx(styles, 'toggle-switch', notifPrefs[key] && 'on')} onClick={() => setNotifPrefs((prev) => ({ ...prev, [key]: !prev[key] }))}>
+              <span className={styles['toggle-knob']} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className={styles['settings-footer']}>
+        <button className={styles['btn-primary-lg']} onClick={onSave}><Save size={15} /> {t('settings.save')}</button>
+      </div>
+    </div>
+  );
+}
+
+export function SecurityTab({
+  language,
+  sessions,
+  revokeSession,
+  setShowDeactivateModal,
+  t,
+}: SecurityTabProps) {
+  return (
+    <div className={styles['settings-panel']}>
+      <div className={styles['settings-panel-header']}>
+        <h1>{t('settings.securityTitle')}</h1>
+        <p>{t('settings.securitySubtitle')}</p>
+      </div>
+
+      <div className={styles['settings-card']}>
+        <p className={styles['notif-section-title']}>{t('settings.securityTab')}</p>
+
+        <div className={styles['security-row']}>
+          <div className={`${styles['security-icon-wrap']} ${styles['purple']}`}><ShieldCheck size={20} /></div>
+          <div className={styles['security-info']}>
+            <p className={styles['security-label']}>Provider ID (OAuth)</p>
+            <p className={styles['security-hint']}>{language === 'th' ? 'เชื่อมต่อแล้ว — ใช้ล่าสุดวันนี้เวลา 07:30 น.' : 'Connected - last used today at 07:30.'}</p>
+          </div>
+          <span className={`${styles['security-status']} ${styles['connected']}`}>{language === 'th' ? 'เชื่อมต่อแล้ว' : 'Connected'}</span>
+        </div>
+
+        <p className={`${styles['notif-section-title']} ${styles['mt-6']}`}>{language === 'th' ? 'เซสชันที่ใช้งานอยู่' : 'Active sessions'}</p>
+        <p className={`${styles['security-hint']} ${styles['mb-4']}`}>{language === 'th' ? 'จัดการและออกจากระบบของอุปกรณ์อื่นที่ยังใช้งานอยู่' : 'Manage and sign out other active devices.'}</p>
+
+        <div className={styles['sessions-list']}>
+          {sessions.map((session) => (
+            <div key={session.id} className={styles['session-row']}>
+              <div className={`${styles['session-device-icon']} ${styles[session.type]}`}>
+                {session.type === 'laptop' ? <Laptop size={18} /> : <Smartphone size={18} />}
+              </div>
+              <div className={styles['session-info']}>
+                <p className={styles['session-name']}>{session.device}</p>
+                <p className={styles['session-meta']}><Globe size={12} />{session.location} · {session.time}</p>
+              </div>
+              {session.isCurrent && <span className={styles['session-current']}>{t('settings.currentSession')}</span>}
+              {!session.isCurrent && <button className={styles['revoke-btn']} onClick={() => revokeSession(session.id)}>{t('settings.logout')}</button>}
+            </div>
+          ))}
+        </div>
+
+        {(() => {
+          // @ts-ignore
+          const tg = (typeof window !== 'undefined' ? window.Telegram : undefined)?.WebApp;
+          const isInTelegram = tg && tg.platform !== 'unknown';
+          if (!isInTelegram) return null;
+
+          return (
+            <>
+              <p className={`${styles['notif-section-title']} ${styles['mt-8']}`}>{t('settings.externalAccess')}</p>
+              <div className={cx(styles, 'security-row', 'browser-redirect')}>
+                <div className={`${styles['security-icon-wrap']} ${styles['blue']}`}><Globe size={20} /></div>
+                <div className={styles['security-info']}>
+                  <p className={styles['security-label']}>{language === 'th' ? 'เปิดในเบราว์เซอร์ภายนอก' : 'Open in external browser'}</p>
+                  <p className={styles['security-hint']}>{language === 'th' ? 'เปิด Antigravity ใน Chrome หรือ Safari เพื่อใช้งานแบบเว็บปกติ และต้องเข้าสู่ระบบใหม่' : 'Open Antigravity in Chrome or Safari for a normal web experience and sign in again.'}</p>
+                </div>
+                <button className={styles['btn-outline-sm']} onClick={() => { tg.openLink(window.location.origin, { try_browser: true }); }}>
+                  {t('settings.openBrowser')}
+                </button>
+              </div>
+            </>
+          );
+        })()}
+
+        <p className={`${styles['notif-section-title']} ${styles['danger']} ${styles['mt-6']}`}>{t('settings.deactivateAccount')}</p>
+        <div className={styles['danger-row']}>
+          <div>
+            <p className={styles['security-label']}>{t('settings.deactivateAccount')}</p>
+            <p className={styles['security-hint']}>{language === 'th' ? 'ปิดการใช้งานบัญชีชั่วคราว และเปิดใช้งานอีกครั้งได้ภายหลัง' : 'Temporarily disable your account and reactivate it later.'}</p>
+          </div>
+          <button className={styles['btn-danger-outline']} onClick={() => setShowDeactivateModal(true)}>
+            {t('settings.deactivateAccount')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DeactivateModal({ onCancel, onConfirm, t }: DeactivateModalProps) {
+  return (
+    <div className={styles['modal-overlay']}>
+      <div className={styles['modal-content']}>
+        <div className={`${styles['modal-icon-wrap']} ${styles['danger']}`}>
+          <ShieldCheck size={32} />
+        </div>
+        <h2>{t('settings.deactivateQuestion')}</h2>
+        <p>{t('settings.deactivateDescription')}</p>
+        <div className={styles['modal-actions']}>
+          <button className={styles['btn-outline-lg']} onClick={onCancel}>
+            {t('settings.cancel')}
+          </button>
+          <button className={styles['btn-danger-lg']} onClick={onConfirm}>
+            {t('settings.confirmDeactivate')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SettingsSidebar({
+  activeTab,
+  setActiveTab,
+  navItems,
+  userProfile,
+}: {
+  activeTab: SettingsTab;
+  setActiveTab: React.Dispatch<React.SetStateAction<SettingsTab>>;
+  navItems: Array<{ id: SettingsTab; label: string; icon: React.ReactNode }>;
+  userProfile: SettingsUserProfile;
+}) {
+  const userInitials = `${(userProfile.firstName || '').charAt(0)}${(userProfile.lastName || '').charAt(0)}`;
+
+  return (
+    <aside className={styles['settings-sidebar']}>
+      <nav className={styles['settings-nav']}>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            className={cx(styles, 'settings-nav-item', activeTab === item.id && 'active')}
+            onClick={() => setActiveTab(item.id)}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className={styles['settings-user-card']}>
+        <SettingsSidebarAvatar avatarUrl={userProfile.avatarUrl} userInitials={userInitials} />
+        <div>
+          <p className={styles['settings-user-name']}>{userProfile.title} {userProfile.firstName} {userProfile.lastName}</p>
+          <p className={styles['settings-user-email']}>{userProfile.email}</p>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+export function SaveToast({ t }: { t: TFunction }) {
+  return (
+    <div className={styles['settings-toast']}>
+      <CheckCircle2 size={18} />
+      {t('settings.profileUpdated')}
+    </div>
+  );
+}
+
+export const settingsNavIconMap = {
+  profile: <User size={18} />,
+  notifications: <Bell size={18} />,
+  security: <ShieldCheck size={18} />,
+} satisfies Record<SettingsTab, React.ReactNode>;
