@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: light;
+  --font-family: "Inter", system-ui, -apple-system, sans-serif;
+  --bg-color: #f0f2f5;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --primary: #4318FF;
+  --primary-glow: rgba(67, 24, 255, 0.4);
+  --border: rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 30px 60px rgba(67, 24, 255, 0.12);
+  --secondary: #707EAE;
+  --bg-main: #f4f7fe;
+  --card-bg: #ffffff;
+  --card-border: #e8ecf4;
+  --text-main: #1b2559;
+  --text-muted: #a3aed0;
+  --success: #10b981;
+  --warning: #ffb800;
+  --danger: #ee5d50;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --transition: all 0.25s ease;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-family);
+  background: radial-gradient(circle at 50% 50%, #f8faff 0, #f1f4f9 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-family);
+}
