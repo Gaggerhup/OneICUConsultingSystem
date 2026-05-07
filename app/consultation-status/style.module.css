@@ -1,0 +1,359 @@
+.case-overview-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.breadcrumb-nav,
+.patient-identity,
+.header-action-buttons,
+.sidebar-section-header,
+.team-member-card,
+.team-member-meta,
+.tabs-nav,
+.vitals-grid-row,
+.case-details-grid {
+  display: flex;
+}
+
+.breadcrumb-nav {
+  align-items: center;
+  gap: 0.75rem;
+  color: #64748b;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.case-number {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.case-patient-header,
+.medical-history-sidebar,
+.main-clinical-area {
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  background: #fff;
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.06);
+}
+
+.case-patient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
+}
+
+.patient-identity {
+  align-items: center;
+  gap: 1rem;
+}
+
+.patient-circle-jd {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #14b8a6);
+}
+
+.patient-text-block h1 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: #0f172a;
+}
+
+.patient-meta-row,
+.patient-id-list {
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.header-action-buttons {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-header {
+  border: 1px solid #dbe4f0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.btn-send-msg {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.btn-outline-purple {
+  color: #5b21b6;
+}
+
+.btn-close-case {
+  color: #b91c1c;
+}
+
+.case-details-grid {
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.medical-history-sidebar {
+  flex: 0 0 320px;
+  padding: 1.2rem;
+}
+
+.main-clinical-area {
+  flex: 1;
+  padding: 1.2rem;
+}
+
+.sidebar-section-header {
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.team-section-header {
+  margin-top: 1.5rem;
+}
+
+.medical-data-group,
+.initial-diagnosis-box {
+  margin-bottom: 1rem;
+}
+
+.medical-data-group label,
+.initial-diagnosis-box label,
+.vital-card-mini label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.medical-data-group p,
+.initial-diagnosis-box h4 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.initial-diagnosis-box {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+}
+
+.team-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-member-card {
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+}
+
+.team-member-avatar {
+  border-radius: 999px;
+}
+
+.team-member-meta {
+  flex: 1;
+  flex-direction: column;
+}
+
+.team-member-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.team-member-specialty {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.invite-consultant-btn {
+  border: 1px dashed #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.tabs-nav {
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.imaging-count {
+  margin-left: 0.3rem;
+  opacity: 0.8;
+}
+
+.tab-content-pane {
+  padding-top: 0.5rem;
+}
+
+.vitals-header,
+.labs-section-header {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.9rem;
+}
+
+.vitals-grid-row {
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.vital-card-mini {
+  min-width: 150px;
+  flex: 1;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.vital-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.vital-unit {
+  margin-left: 0.3rem;
+  color: #64748b;
+}
+
+.modern-labs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-labs-table th,
+.modern-labs-table td {
+  padding: 0.8rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.modern-labs-table th {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.col-test,
+.col-result,
+.col-ref {
+  color: #0f172a;
+}
+
+.placeholder-pane {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  border-radius: 1.25rem;
+}
+
+.placeholder-icon {
+  color: #94a3b8;
+}
+
+.badge-urgent,
+.badge-immediate,
+.badge-emergency,
+.badge-semi-urgent,
+.badge-non-urgent {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.badge-urgent { background: #fef3c7; color: #92400e; }
+.badge-immediate { background: #fee2e2; color: #b91c1c; }
+.badge-emergency { background: #ffe4e6; color: #be123c; }
+.badge-semi-urgent { background: #dcfce7; color: #166534; }
+.badge-non-urgent { background: #e2e8f0; color: #334155; }
+
+@media (max-width: 1024px) {
+  .case-details-grid {
+    flex-direction: column;
+  }
+
+  .medical-history-sidebar {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .case-patient-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-action-buttons {
+    width: 100%;
+  }
+}
